@@ -481,6 +481,7 @@ img { max-width: 100%; display: block; }
 .cart-empty { color: var(--ink-soft); text-align: center; margin-top: 40px; }
 .cart-line { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .cart-line-thumb { width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(160deg,#4b4d57,#0e0f14); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: .8rem; }
+img.cart-line-thumb { background: linear-gradient(160deg, #f1f0f6, #e2e0ee); object-fit: cover; object-position: center 35%; }
 .cart-line-info { flex: 1; }
 .cart-line-info strong { font-size: .9rem; display: block; }
 .cart-line-info span { font-size: .78rem; color: var(--ink-soft); display: block; }
@@ -587,6 +588,18 @@ img { max-width: 100%; display: block; }
 .specs-table th, .specs-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: .92rem; }
 .specs-table th { color: var(--ink-soft); font-weight: 600; width: 40%; }
 .specs-table td { font-weight: 600; }
+
+.pdp-rating-summary { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.pdp-rating-score { font-size: 2.2rem; font-weight: 800; font-family: 'Poppins',sans-serif; }
+.pdp-rating-info { display: flex; flex-direction: column; }
+.pdp-rating-stars { color: var(--warning); font-size: 1.05rem; }
+.pdp-rating-count { font-size: .82rem; color: var(--ink-soft); }
+.pdp-reviews-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.pdp-review { background: var(--bg-alt); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; }
+.pdp-review-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: .9rem; }
+.pdp-review-head span { color: var(--ink-soft); font-size: .8rem; }
+.pdp-review-stars { color: var(--warning); font-size: .85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.pdp-review p { font-size: .88rem; color: var(--ink-soft); line-height: 1.5; }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {

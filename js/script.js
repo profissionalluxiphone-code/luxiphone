@@ -3,6 +3,17 @@ function formatBRL(value) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// Fotos oficiais da Apple usadas no catálogo, na página de produto e no carrinho.
+const PRODUCT_IMAGES = {
+  'iphone-11': 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone_11-family-lineup-091019_big.jpg.large.jpg',
+  'iphone-12': 'https://www.apple.com/newsroom/images/product/iphone/standard/apple_iphone-12-spring21_purple_04202021_big.jpg.large.jpg',
+  'iphone-13': 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg',
+  'iphone-14': 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-iPhone-14-Plus-2up-midnight-220907_inline.jpg.large.jpg',
+  'iphone-15': 'https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-design-230912_big.jpg.large.jpg',
+  'iphone-16': 'https://www.apple.com/newsroom/images/2024/09/apple-introduces-iphone-16-and-iphone-16-plus/article/Apple-iPhone-16-finish-lineup-240909_big.jpg.large.jpg',
+  'iphone-17': 'https://www.apple.com/newsroom/images/2025/09/apple-debuts-iphone-17/article/Apple-iPhone-17-hero-250909_inline.jpg.large.jpg'
+};
+
 // ================= HEADER: scroll shadow + mobile menu =================
 const siteHeader = document.getElementById('siteHeader');
 window.addEventListener('scroll', () => {
@@ -377,7 +388,9 @@ function renderCart() {
     cartEmptyMsg.style.display = 'none';
     cartItemsEl.innerHTML = cart.map(item => `
       <div class="cart-line">
-        <div class="cart-line-thumb">${item.initials}</div>
+        ${PRODUCT_IMAGES[item.productId]
+          ? `<img class="cart-line-thumb" src="${PRODUCT_IMAGES[item.productId]}" alt="${item.name}">`
+          : `<div class="cart-line-thumb">${item.initials}</div>`}
         <div class="cart-line-info">
           <strong>${item.name} ${item.qty > 1 ? `× ${item.qty}` : ''}</strong>
           <span>${item.variant}</span>

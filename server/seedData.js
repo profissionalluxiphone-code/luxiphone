@@ -10,8 +10,8 @@ module.exports = [
       { label: '128GB', delta: 400 },
       { label: '256GB', delta: 800 }
     ],
-    novo: { price: 1279, de: 1899, stock: 22, available: true },
-    recon: { price: 799, de: 1399, stock: 30, available: true }
+    novo: { price: 1199, de: 1899, stock: 22, available: true },
+    recon: { price: 749, de: 1399, stock: 30, available: true }
   },
   {
     id: 'iphone-12',
@@ -22,8 +22,8 @@ module.exports = [
       { label: '128GB', delta: 400 },
       { label: '256GB', delta: 800 }
     ],
-    novo: { price: 2099, de: 2999, stock: 20, available: true },
-    recon: { price: 1499, de: 2299, stock: 26, available: true }
+    novo: { price: 1899, de: 2999, stock: 20, available: true },
+    recon: { price: 1349, de: 2299, stock: 26, available: true }
   },
   {
     id: 'iphone-13',
@@ -34,8 +34,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 2499, de: 3699, stock: 18, available: true },
-    recon: { price: 1899, de: 2899, stock: 24, available: true }
+    novo: { price: 2199, de: 3699, stock: 18, available: true },
+    recon: { price: 1699, de: 2899, stock: 24, available: true }
   },
   {
     id: 'iphone-14',
@@ -46,8 +46,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 2999, de: 4399, stock: 16, available: true },
-    recon: { price: 2299, de: 3499, stock: 20, available: true }
+    novo: { price: 2499, de: 4399, stock: 16, available: true },
+    recon: { price: 1999, de: 3499, stock: 20, available: true }
   },
   {
     id: 'iphone-15',
@@ -58,8 +58,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 3699, de: 5299, stock: 14, available: true },
-    recon: { price: 2899, de: 4299, stock: 16, available: true }
+    novo: { price: 2999, de: 5299, stock: 14, available: true },
+    recon: { price: 2399, de: 4299, stock: 16, available: true }
   },
   {
     id: 'iphone-16',
@@ -70,8 +70,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 4399, de: 6199, stock: 12, available: true },
-    recon: { price: 3699, de: 5199, stock: 10, available: true }
+    novo: { price: 3599, de: 6199, stock: 12, available: true },
+    recon: { price: 2999, de: 5199, stock: 10, available: true }
   },
   {
     id: 'iphone-17',
@@ -82,7 +82,7 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 5399, de: 6999, stock: 9, available: true },
+    novo: { price: 4399, de: 6999, stock: 9, available: true },
     recon: { price: 0, de: 0, stock: 0, available: false }
   },
   {

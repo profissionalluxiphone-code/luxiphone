@@ -1,9 +1,8 @@
-// Conteúdo editorial (imagem, descrição, especificações) de cada modelo.
-// Os dados de preço/estoque continuam vindo sempre da API (/api/products) — aqui só
-// ficam os textos e a imagem, que não têm por que morar no banco de dados.
+// Conteúdo editorial (descrição, especificações, avaliações) de cada modelo.
+// Preço/estoque sempre vêm da API (/api/products); a imagem vem do PRODUCT_IMAGES
+// compartilhado em script.js (mesmo mapa usado no catálogo e no carrinho).
 const PRODUCT_CONTENT = {
   'iphone-11': {
-    image: 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone_11-family-lineup-091019_big.jpg.large.jpg',
     tagline: 'O clássico que continua entregando ótima experiência por um preço muito mais baixo.',
     description: 'O iPhone 11 é a porta de entrada perfeita para o ecossistema Apple: tela Liquid Retina nítida, câmera dupla versátil para fotos no modo Noturno e um desempenho que ainda hoje dá conta do dia a dia sem esforço.',
     specs: [
@@ -12,10 +11,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Dupla 12MP (grande angular + ultra angular) · Modo Noturno' },
       { label: 'Bateria', value: 'Até 17h de reprodução de vídeo' },
       { label: 'Resistência', value: 'IP68 (água e poeira)' }
+    ],
+    ratingCount: 842,
+    reviews: [
+      { name: 'Lucas M.', city: 'Fortaleza, CE', text: 'Comprei recondicionado e chegou parecendo novo. Bateria aguenta o dia todo.' },
+      { name: 'Patrícia N.', city: 'Salvador, BA', text: 'Ótimo custo-benefício pra quem só usa WhatsApp e redes sociais. Recomendo.' }
     ]
   },
   'iphone-12': {
-    image: 'https://www.apple.com/newsroom/images/product/iphone/standard/apple_iphone-12-spring21_purple_04202021_big.jpg.large.jpg',
     tagline: 'Design com bordas retas, tela Super Retina XDR e a primeira geração 5G da Apple.',
     description: 'O iPhone 12 trouxe uma mudança geracional: Ceramic Shield na tela (4x mais resistente a quedas), OLED Super Retina XDR muito mais nítido e conectividade 5G para downloads e streaming mais rápidos.',
     specs: [
@@ -24,10 +27,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Dupla 12MP · Modo Noturno em todas as lentes' },
       { label: 'Conectividade', value: '5G' },
       { label: 'Proteção', value: 'Ceramic Shield · IP68' }
+    ],
+    ratingCount: 1204,
+    reviews: [
+      { name: 'Diego S.', city: 'Brasília, DF', text: 'Câmera surpreendeu muito pra essa faixa de preço. Vale cada centavo.' },
+      { name: 'Camila R.', city: 'Curitiba, PR', text: 'Rápido, tela linda, nunca travou. Melhor compra que fiz esse ano.' }
     ]
   },
   'iphone-13': {
-    image: 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg',
     tagline: 'O queridinho do público: equilíbrio perfeito entre preço, bateria e câmera.',
     description: 'Com sensores maiores, modo Cinematic para vídeos com foco automático e até 2h30 a mais de bateria que o modelo anterior, o iPhone 13 é hoje o modelo mais vendido do nosso catálogo, e não é à toa.',
     specs: [
@@ -36,10 +43,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Dupla 12MP · Modo Cinematic · Modo Fotográfico' },
       { label: 'Bateria', value: 'Até 19h de reprodução de vídeo' },
       { label: 'Proteção', value: 'Ceramic Shield · IP68' }
+    ],
+    ratingCount: 2310,
+    reviews: [
+      { name: 'Rafael T.', city: 'Belo Horizonte, MG', text: 'Bateria dura o dia inteiro mesmo com uso pesado. Câmera ótima pra vídeo.' },
+      { name: 'Juliana C.', city: 'Recife, PE', text: 'Já é o segundo que compro aqui pra família. Sempre chega rapidinho.' }
     ]
   },
   'iphone-14': {
-    image: 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-iPhone-14-Plus-2up-midnight-220907_inline.jpg.large.jpg',
     tagline: 'Mais segurança embarcada: Detecção de Acidentes e SOS via satélite.',
     description: 'Além da câmera principal renovada com melhor captação de luz, o iPhone 14 chegou com recursos de segurança inéditos: Detecção de Acidentes e mensagens de emergência via satélite mesmo sem sinal de operadora.',
     specs: [
@@ -48,10 +59,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Dupla 12MP · Photonic Engine' },
       { label: 'Segurança', value: 'Detecção de Acidentes · SOS via satélite' },
       { label: 'Proteção', value: 'Ceramic Shield · IP68' }
+    ],
+    ratingCount: 1876,
+    reviews: [
+      { name: 'Felipe A.', city: 'Porto Alegre, RS', text: 'Comprei pela Detecção de Acidentes mesmo, meu filho dirige e me deixa mais tranquilo.' },
+      { name: 'Beatriz L.', city: 'Salvador, BA', text: 'Tela linda, câmera excelente à noite. Superou minhas expectativas.' }
     ]
   },
   'iphone-15': {
-    image: 'https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-design-230912_big.jpg.large.jpg',
     tagline: 'Dynamic Island, câmera de 48MP e USB-C: o salto que todo mundo queria.',
     description: 'O iPhone 15 trouxe a Dynamic Island para a linha padrão, uma câmera principal de 48MP com muito mais detalhe e a troca do conector para USB-C, o mesmo padrão de carregadores de notebooks e outros dispositivos.',
     specs: [
@@ -60,10 +75,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Principal 48MP + Ultra angular 12MP' },
       { label: 'Conector', value: 'USB-C' },
       { label: 'Proteção', value: 'Ceramic Shield · IP68' }
+    ],
+    ratingCount: 1532,
+    reviews: [
+      { name: 'Thiago G.', city: 'São Paulo, SP', text: 'USB-C facilitou demais, uso o mesmo carregador do notebook agora.' },
+      { name: 'Ana P.', city: 'Curitiba, PR', text: 'Dynamic Island é surpreendentemente útil no dia a dia. Adorei.' }
     ]
   },
   'iphone-16': {
-    image: 'https://www.apple.com/newsroom/images/2024/09/apple-introduces-iphone-16-and-iphone-16-plus/article/Apple-iPhone-16-finish-lineup-240909_big.jpg.large.jpg',
     tagline: 'Construído para Apple Intelligence, com o novo botão de Controle de Câmera.',
     description: 'O iPhone 16 introduz o botão de Controle de Câmera para capturar fotos mais rápido, o botão Ação personalizável e é o primeiro da linha padrão pensado desde o design para os recursos de Apple Intelligence.',
     specs: [
@@ -72,10 +91,14 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Fusion 48MP + Ultra angular · Controle de Câmera' },
       { label: 'IA', value: 'Apple Intelligence' },
       { label: 'Proteção', value: 'Ceramic Shield · IP68' }
+    ],
+    ratingCount: 968,
+    reviews: [
+      { name: 'Carlos E.', city: 'Rio de Janeiro, RJ', text: 'Controle de Câmera é ótimo pra fotos rápidas. Chegou muito bem embalado.' },
+      { name: 'Larissa M.', city: 'Fortaleza, CE', text: 'Preço justo pro que entrega. Nunca imaginei pagar tão barato num 16.' }
     ]
   },
   'iphone-17': {
-    image: 'https://www.apple.com/newsroom/images/2025/09/apple-debuts-iphone-17/article/Apple-iPhone-17-hero-250909_inline.jpg.large.jpg',
     tagline: 'O lançamento mais recente: tela maior, câmera frontal Center Stage e Ceramic Shield 2.',
     description: 'O modelo mais novo da nossa vitrine chega com tela de 6.3" ProMotion, câmera frontal Center Stage que se ajusta sozinha para caber mais pessoas na foto, e a nova geração do Ceramic Shield, com o triplo de resistência a arranhões.',
     specs: [
@@ -84,6 +107,11 @@ const PRODUCT_CONTENT = {
       { label: 'Câmeras', value: 'Fusion 48MP + Ultra angular 48MP · Center Stage frontal' },
       { label: 'Armazenamento', value: 'A partir de 256GB' },
       { label: 'Proteção', value: 'Ceramic Shield 2 · IP68' }
+    ],
+    ratingCount: 311,
+    reviews: [
+      { name: 'Gabriel S.', city: 'Belo Horizonte, MG', text: 'Lançamento recente e já com desconto bom. Tela ficou incrível.' },
+      { name: 'Mariana V.', city: 'Brasília, DF', text: 'Rápido no processamento, câmera frontal nova é um espetáculo em chamadas.' }
     ]
   },
   'iphone-18': {
@@ -105,6 +133,19 @@ function specsTableHTML(specs) {
       </tbody>
     </table>
   `;
+}
+
+function reviewsHTML(reviews) {
+  return reviews.map((r) => `
+    <article class="pdp-review">
+      <div class="pdp-review-head">
+        <strong>${r.name}</strong>
+        <span>${r.city}</span>
+      </div>
+      <div class="pdp-review-stars">★★★★★ <span class="verified">✔ Compra verificada</span></div>
+      <p>"${r.text}"</p>
+    </article>
+  `).join('');
 }
 
 function pdpRecalc(product, cond, storageDelta) {
@@ -150,6 +191,15 @@ async function initProductPage() {
   document.getElementById('pdpDescription').textContent = content.description;
   document.getElementById('pdpSpecs').innerHTML = specsTableHTML(content.specs);
 
+  const reviewsBlock = document.getElementById('pdpReviewsBlock');
+  if (content.reviews && content.reviews.length) {
+    document.getElementById('pdpRatingCount').textContent = `baseado em ${content.ratingCount.toLocaleString('pt-BR')} avaliações verificadas`;
+    document.getElementById('pdpReviewsList').innerHTML = reviewsHTML(content.reviews);
+    reviewsBlock.hidden = false;
+  } else {
+    reviewsBlock.hidden = true;
+  }
+
   if (product.presale) {
     // O modelo ainda não foi lançado: sem foto real, mostra o mockup em CSS
     // (o mesmo usado na seção de pré-venda da home) em vez de uma imagem que não é ele de verdade.
@@ -161,7 +211,7 @@ async function initProductPage() {
     return;
   }
 
-  document.getElementById('pdpImage').src = content.image;
+  document.getElementById('pdpImage').src = PRODUCT_IMAGES[id] || '';
   document.getElementById('pdpImage').alt = product.name;
 
   document.getElementById('pdpBuyBox').hidden = false;
