@@ -52,9 +52,11 @@ function mapOrderRow(row) {
 function mapUserRow(row) {
   return {
     id: row.id,
-    googleSub: row.google_sub,
+    googleSub: row.google_sub || undefined,
     email: row.email,
     name: row.name,
+    hasPassword: !!row.password_hash,
+    hasGoogle: !!row.google_sub,
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
     lastLoginAt: row.last_login_at instanceof Date ? row.last_login_at.toISOString() : row.last_login_at
   };
@@ -80,13 +82,18 @@ async function init(seedData) {
   await p.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      google_sub TEXT UNIQUE NOT NULL,
+      google_sub TEXT UNIQUE,
       email TEXT NOT NULL,
       name TEXT,
+      password_hash TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       last_login_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  // Migração: bancos criados antes do login por e-mail/senha tinham google_sub NOT NULL.
+  await p.query('ALTER TABLE users ALTER COLUMN google_sub DROP NOT NULL').catch(() => {});
+  await p.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT');
+  await p.query('CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (LOWER(email))');
   await p.query(`
     CREATE TABLE IF NOT EXISTS orders (
       order_number TEXT PRIMARY KEY,
@@ -133,6 +140,13 @@ async function init(seedData) {
   const { rowCount } = await p.query('SELECT 1 FROM counters WHERE name = $1', ['nextOrderSeq']);
   if (rowCount === 0) {
     await p.query('INSERT INTO counters (name, value) VALUES ($1, $2)', ['nextOrderSeq', 100001]);
+  }
+
+  // storage_options é estrutura do catálogo definida no código (não editável pelo admin),
+  // então sempre sincronizamos com o seedData — diferente de preço/estoque, que o
+  // lojista edita pelo painel e por isso nunca são sobrescritos aqui.
+  for (const item of seedData) {
+    await p.query('UPDATE products SET storage_options = $1 WHERE id = $2', [JSON.stringify(item.storageOptions || []), item.id]);
   }
 }
 
@@ -188,18 +202,57 @@ async function getUserById(id) {
   return rows[0] ? mapUserRow(rows[0]) : null;
 }
 
+async function getUserByEmailRaw(email) {
+  const { rows } = await getPool().query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+  return rows[0] || null;
+}
+
+async function getUserByEmail(email) {
+  const row = await getUserByEmailRaw(email);
+  return row ? mapUserRow(row) : null;
+}
+
+async function getUserAuthByEmail(email) {
+  const row = await getUserByEmailRaw(email);
+  if (!row) return null;
+  return { id: row.id, passwordHash: row.password_hash, hasGoogle: !!row.google_sub };
+}
+
+async function getOrdersByUser(userId) {
+  const { rows } = await getPool().query('SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+  return rows.map(mapOrderRow);
+}
+
+function newUserId() {
+  return `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+}
+
+async function createEmailUser({ name, email, passwordHash }) {
+  const id = newUserId();
+  const { rows } = await getPool().query(
+    `INSERT INTO users (id, email, name, password_hash) VALUES ($1,$2,$3,$4) RETURNING *`,
+    [id, email, name, passwordHash]
+  );
+  return mapUserRow(rows[0]);
+}
+
 async function upsertGoogleUser({ googleSub, email, name }) {
   const { rows } = await getPool().query('SELECT * FROM users WHERE google_sub = $1', [googleSub]);
+  let existing = rows[0];
 
-  if (rows[0]) {
+  // Se o e-mail (verificado pelo Google) já pertence a uma conta criada por
+  // senha, vinculamos o Google a ela em vez de criar um cadastro duplicado.
+  if (!existing) existing = await getUserByEmailRaw(email);
+
+  if (existing) {
     const { rows: updated } = await getPool().query(
-      `UPDATE users SET email = $1, name = $2, last_login_at = now() WHERE google_sub = $3 RETURNING *`,
-      [email, name, googleSub]
+      `UPDATE users SET google_sub = $1, email = $2, name = $3, last_login_at = now() WHERE id = $4 RETURNING *`,
+      [googleSub, email, name, existing.id]
     );
     return mapUserRow(updated[0]);
   }
 
-  const id = `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+  const id = newUserId();
   const { rows: created } = await getPool().query(
     `INSERT INTO users (id, google_sub, email, name) VALUES ($1,$2,$3,$4) RETURNING *`,
     [id, googleSub, email, name]
@@ -234,5 +287,5 @@ async function nextOrderNumber() {
 
 module.exports = {
   init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber,
-  getUserById, upsertGoogleUser, getUsers
+  getUserById, upsertGoogleUser, getUsers, getUserByEmail, getUserAuthByEmail, createEmailUser, getOrdersByUser
 };

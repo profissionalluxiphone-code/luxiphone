@@ -34,13 +34,17 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// Exige login (Google) para seguir com o pedido — não valida token de admin.
+// Exige estar logado (Google ou e-mail/senha) — não valida token de admin.
 async function requireUser(req, res, next) {
   const userId = auth.getSessionUserId(req);
   const user = userId ? await db.getUserById(userId) : null;
-  if (!user) return res.status(401).json({ error: 'Faça login com sua conta Google para finalizar o pedido.' });
+  if (!user) return res.status(401).json({ error: 'Faça login para continuar.' });
   req.user = user;
   next();
+}
+
+function requestIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
 }
 
 function conditionLabel(cond) {
@@ -85,6 +89,58 @@ app.post('/api/auth/logout', (req, res) => {
   auth.clearSessionCookie(res);
   res.json({ ok: true });
 });
+
+// ---------- AUTH: CADASTRO E LOGIN POR E-MAIL/SENHA ----------
+app.post('/api/auth/register', asyncHandler(async (req, res) => {
+  if (!auth.rateLimit(`register:${requestIp(req)}`, 8, 10 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' });
+  }
+
+  const { name, email, password } = req.body || {};
+  const emailNorm = auth.normalizeEmail(email);
+
+  if (!name || !name.trim()) return res.status(400).json({ error: 'Informe seu nome.' });
+  if (!emailNorm || !emailNorm.includes('@')) return res.status(400).json({ error: 'Informe um e-mail válido.' });
+  if (!password || password.length < 6) return res.status(400).json({ error: 'A senha precisa ter pelo menos 6 caracteres.' });
+
+  const existing = await db.getUserByEmail(emailNorm);
+  if (existing) return res.status(409).json({ error: 'Esse e-mail já está cadastrado. Faça login.' });
+
+  const user = await db.createEmailUser({ name: name.trim(), email: emailNorm, passwordHash: auth.hashPassword(password) });
+  auth.setSessionCookie(res, user.id, req.protocol === 'https' || process.env.NODE_ENV === 'production');
+  res.status(201).json({ user });
+}));
+
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
+  if (!auth.rateLimit(`login:${requestIp(req)}`, 10, 10 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' });
+  }
+
+  const { email, password } = req.body || {};
+  const emailNorm = auth.normalizeEmail(email);
+  if (!emailNorm || !password) return res.status(400).json({ error: 'Informe e-mail e senha.' });
+
+  const authRow = await db.getUserAuthByEmail(emailNorm);
+  if (!authRow || !authRow.passwordHash) {
+    if (authRow && authRow.hasGoogle) {
+      return res.status(401).json({ error: 'Essa conta usa login com Google. Entre pelo botão do Google.' });
+    }
+    return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+  }
+
+  if (!auth.verifyPassword(password, authRow.passwordHash)) {
+    return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+  }
+
+  const user = await db.getUserById(authRow.id);
+  auth.setSessionCookie(res, user.id, req.protocol === 'https' || process.env.NODE_ENV === 'production');
+  res.json({ user });
+}));
+
+// ---------- CLIENTE: MEUS PEDIDOS ----------
+app.get('/api/me/orders', requireUser, asyncHandler(async (req, res) => {
+  res.json(await db.getOrdersByUser(req.user.id));
+}));
 
 // ---------- PUBLIC: CREATE ORDER (exige login com Google) ----------
 app.post('/api/orders', requireUser, asyncHandler(async (req, res) => {

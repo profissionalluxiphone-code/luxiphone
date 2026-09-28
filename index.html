@@ -54,6 +54,7 @@
       <span class="search-icon">🔍</span>
     </div>
 
+    <a href="perfil.html" class="account-btn" id="accountBtn">👤 <span id="accountLabel">Entrar</span></a>
     <button class="cart-btn" id="cartOpenBtn" aria-label="Abrir carrinho">
       🛒 <span class="cart-count" id="cartCount">0</span>
     </button>
@@ -148,8 +149,8 @@
           <label class="storage-pill-label">Armazenamento
             <select id="presaleStorage" class="storage-select">
               <option value="0">256GB</option>
-              <option value="600">512GB</option>
-              <option value="1200">1TB</option>
+              <option value="100">512GB</option>
+              <option value="200">1TB</option>
             </select>
           </label>
         </div>
@@ -216,8 +217,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">64GB</option>
-              <option value="400">128GB</option>
-              <option value="800">256GB</option>
+              <option value="100">128GB</option>
+              <option value="200">256GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -243,8 +244,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">64GB</option>
-              <option value="400">128GB</option>
-              <option value="800">256GB</option>
+              <option value="100">128GB</option>
+              <option value="200">256GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -270,8 +271,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">128GB</option>
-              <option value="400">256GB</option>
-              <option value="800">512GB</option>
+              <option value="100">256GB</option>
+              <option value="200">512GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -297,8 +298,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">128GB</option>
-              <option value="400">256GB</option>
-              <option value="800">512GB</option>
+              <option value="100">256GB</option>
+              <option value="200">512GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -324,8 +325,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">128GB</option>
-              <option value="400">256GB</option>
-              <option value="800">512GB</option>
+              <option value="100">256GB</option>
+              <option value="200">512GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -351,8 +352,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">128GB</option>
-              <option value="400">256GB</option>
-              <option value="800">512GB</option>
+              <option value="100">256GB</option>
+              <option value="200">512GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -378,8 +379,8 @@
           <label class="options-row">Armazenamento
             <select class="storage-select">
               <option value="0">128GB</option>
-              <option value="400">256GB</option>
-              <option value="800">512GB</option>
+              <option value="100">256GB</option>
+              <option value="200">512GB</option>
             </select>
           </label>
           <div class="price-block">
@@ -605,9 +606,6 @@
     <div class="footer-col">
       <h5>Atendimento</h5>
       <a href="mailto:profissionalluxiphone@gmail.com">✉️ profissionalluxiphone@gmail.com</a>
-      <div class="footer-social">
-        <span>Instagram</span><span>Facebook</span><span>TikTok</span>
-      </div>
     </div>
   </div>
   <div class="footer-bottom">
@@ -640,11 +638,7 @@
       <h3>Finalizar pedido</h3>
       <p class="modal-sub">Preencha seus dados para nossa equipe confirmar o pagamento e a entrega com você.</p>
 
-      <div class="login-gate" id="loginGate">
-        <p>Entre com sua conta Google para continuar a compra.</p>
-        <div id="googleSignInBtn"></div>
-        <p class="login-gate-error" id="loginGateError" hidden></p>
-      </div>
+      <div class="login-gate" id="loginGate"></div>
 
       <div class="logged-in-bar" id="loggedInBar" hidden>
         <span id="loggedInLabel"></span>

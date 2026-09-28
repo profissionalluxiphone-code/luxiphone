@@ -45,9 +45,11 @@ function mapOrderRow(row) {
 function mapUserRow(row) {
   return {
     id: row.id,
-    googleSub: row.google_sub,
+    googleSub: row.google_sub || undefined,
     email: row.email,
     name: row.name,
+    hasPassword: !!row.password_hash,
+    hasGoogle: !!row.google_sub,
     createdAt: row.created_at,
     lastLoginAt: row.last_login_at
   };
@@ -72,13 +74,19 @@ async function init(seedData) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      google_sub TEXT UNIQUE NOT NULL,
+      google_sub TEXT UNIQUE,
       email TEXT NOT NULL,
       name TEXT,
+      password_hash TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       last_login_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+  if (!userCols.includes('password_hash')) {
+    db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT');
+  }
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users (email COLLATE NOCASE)');
   db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       order_number TEXT PRIMARY KEY,
@@ -134,6 +142,14 @@ async function init(seedData) {
   if (!counterExists) {
     db.prepare('INSERT INTO counters (name, value) VALUES (?, ?)').run('nextOrderSeq', 100001);
   }
+
+  // storage_options é estrutura do catálogo definida no código (não editável pelo admin),
+  // então sempre sincronizamos com o seedData — diferente de preço/estoque, que o
+  // lojista edita pelo painel e por isso nunca são sobrescritos aqui.
+  const updateStorage = db.prepare('UPDATE products SET storage_options = ? WHERE id = ?');
+  for (const item of seedData) {
+    updateStorage.run(JSON.stringify(item.storageOptions || []), item.id);
+  }
 }
 
 async function getProducts() {
@@ -187,17 +203,45 @@ async function getUserById(id) {
   return row ? mapUserRow(row) : null;
 }
 
+function getUserByEmailRaw(email) {
+  return db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(email);
+}
+
+async function getUserByEmail(email) {
+  const row = getUserByEmailRaw(email);
+  return row ? mapUserRow(row) : null;
+}
+
+async function getUserAuthByEmail(email) {
+  const row = getUserByEmailRaw(email);
+  if (!row) return null;
+  return { id: row.id, passwordHash: row.password_hash, hasGoogle: !!row.google_sub };
+}
+
+function newUserId() {
+  return `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+}
+
+async function createEmailUser({ name, email, passwordHash }) {
+  const id = newUserId();
+  db.prepare(`
+    INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)
+  `).run(id, email, name, passwordHash);
+  return getUserById(id);
+}
+
 async function upsertGoogleUser({ googleSub, email, name }) {
-  const existing = db.prepare('SELECT * FROM users WHERE google_sub = ?').get(googleSub);
+  let existing = db.prepare('SELECT * FROM users WHERE google_sub = ?').get(googleSub);
+  if (!existing) existing = getUserByEmailRaw(email);
 
   if (existing) {
     db.prepare(`
-      UPDATE users SET email = ?, name = ?, last_login_at = datetime('now') WHERE google_sub = ?
-    `).run(email, name, googleSub);
+      UPDATE users SET google_sub = ?, email = ?, name = ?, last_login_at = datetime('now') WHERE id = ?
+    `).run(googleSub, email, name, existing.id);
     return getUserById(existing.id);
   }
 
-  const id = `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+  const id = newUserId();
   db.prepare(`
     INSERT INTO users (id, google_sub, email, name) VALUES (?, ?, ?, ?)
   `).run(id, googleSub, email, name);
@@ -207,6 +251,11 @@ async function upsertGoogleUser({ googleSub, email, name }) {
 async function getUsers() {
   const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   return rows.map(mapUserRow);
+}
+
+async function getOrdersByUser(userId) {
+  const rows = db.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').all(userId);
+  return rows.map(mapOrderRow);
 }
 
 async function updateOrderStatus(orderNumber, status) {
@@ -229,5 +278,5 @@ async function nextOrderNumber() {
 
 module.exports = {
   init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber,
-  getUserById, upsertGoogleUser, getUsers
+  getUserById, upsertGoogleUser, getUsers, getUserByEmail, getUserAuthByEmail, createEmailUser, getOrdersByUser
 };

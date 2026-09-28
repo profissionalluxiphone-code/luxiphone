@@ -28,5 +28,9 @@ module.exports = {
   nextOrderNumber: (...args) => withReady(() => impl.nextOrderNumber(...args)),
   getUserById: (...args) => withReady(() => impl.getUserById(...args)),
   upsertGoogleUser: (...args) => withReady(() => impl.upsertGoogleUser(...args)),
-  getUsers: (...args) => withReady(() => impl.getUsers(...args))
+  getUsers: (...args) => withReady(() => impl.getUsers(...args)),
+  getUserByEmail: (...args) => withReady(() => impl.getUserByEmail(...args)),
+  getUserAuthByEmail: (...args) => withReady(() => impl.getUserAuthByEmail(...args)),
+  createEmailUser: (...args) => withReady(() => impl.createEmailUser(...args)),
+  getOrdersByUser: (...args) => withReady(() => impl.getOrdersByUser(...args))
 };

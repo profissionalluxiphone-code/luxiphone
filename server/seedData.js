@@ -7,8 +7,8 @@ module.exports = [
     sortOrder: 1,
     storageOptions: [
       { label: '64GB', delta: 0 },
-      { label: '128GB', delta: 400 },
-      { label: '256GB', delta: 800 }
+      { label: '128GB', delta: 100 },
+      { label: '256GB', delta: 200 }
     ],
     novo: { price: 1199, de: 1899, stock: 22, available: true },
     recon: { price: 749, de: 1399, stock: 30, available: true }
@@ -19,8 +19,8 @@ module.exports = [
     sortOrder: 2,
     storageOptions: [
       { label: '64GB', delta: 0 },
-      { label: '128GB', delta: 400 },
-      { label: '256GB', delta: 800 }
+      { label: '128GB', delta: 100 },
+      { label: '256GB', delta: 200 }
     ],
     novo: { price: 1899, de: 2999, stock: 20, available: true },
     recon: { price: 1349, de: 2299, stock: 26, available: true }
@@ -31,8 +31,8 @@ module.exports = [
     sortOrder: 3,
     storageOptions: [
       { label: '128GB', delta: 0 },
-      { label: '256GB', delta: 400 },
-      { label: '512GB', delta: 800 }
+      { label: '256GB', delta: 100 },
+      { label: '512GB', delta: 200 }
     ],
     novo: { price: 2199, de: 3699, stock: 18, available: true },
     recon: { price: 1699, de: 2899, stock: 24, available: true }
@@ -43,8 +43,8 @@ module.exports = [
     sortOrder: 4,
     storageOptions: [
       { label: '128GB', delta: 0 },
-      { label: '256GB', delta: 400 },
-      { label: '512GB', delta: 800 }
+      { label: '256GB', delta: 100 },
+      { label: '512GB', delta: 200 }
     ],
     novo: { price: 1999, de: 4399, stock: 16, available: true },
     recon: { price: 1599, de: 3499, stock: 20, available: true }
@@ -55,8 +55,8 @@ module.exports = [
     sortOrder: 5,
     storageOptions: [
       { label: '128GB', delta: 0 },
-      { label: '256GB', delta: 400 },
-      { label: '512GB', delta: 800 }
+      { label: '256GB', delta: 100 },
+      { label: '512GB', delta: 200 }
     ],
     novo: { price: 2300, de: 5299, stock: 14, available: true },
     recon: { price: 1799, de: 4299, stock: 16, available: true }
@@ -67,8 +67,8 @@ module.exports = [
     sortOrder: 6,
     storageOptions: [
       { label: '128GB', delta: 0 },
-      { label: '256GB', delta: 400 },
-      { label: '512GB', delta: 800 }
+      { label: '256GB', delta: 100 },
+      { label: '512GB', delta: 200 }
     ],
     novo: { price: 2990, de: 6199, stock: 12, available: true },
     recon: { price: 2499, de: 5199, stock: 10, available: true }
@@ -79,8 +79,8 @@ module.exports = [
     sortOrder: 7,
     storageOptions: [
       { label: '128GB', delta: 0 },
-      { label: '256GB', delta: 400 },
-      { label: '512GB', delta: 800 }
+      { label: '256GB', delta: 100 },
+      { label: '512GB', delta: 200 }
     ],
     novo: { price: 3490, de: 6999, stock: 9, available: true },
     recon: { price: 0, de: 0, stock: 0, available: false }
@@ -94,8 +94,8 @@ module.exports = [
     depositPrice: 299,
     storageOptions: [
       { label: '256GB', delta: 0 },
-      { label: '512GB', delta: 600 },
-      { label: '1TB', delta: 1200 }
+      { label: '512GB', delta: 100 },
+      { label: '1TB', delta: 200 }
     ],
     reservationLimit: 500,
     reservationsCount: 400

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iPhone - Lux iPhones</title>
-<meta name="description" content="Confira preço, condição, estoque e especificações completas na Lux iPhones, com garantia de 12 meses e frete grátis.">
+<title>Minha conta - Lux iPhones</title>
+<meta name="description" content="Acesse sua conta na Lux iPhones para ver seus dados e acompanhar seus pedidos.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%3E%3Cpath%20d%3D'M9.5%203.2c-.2%201.3.6%202.6%201.4%203.4.8.8%202%201.4%203.1%201.3.2-1.2-.5-2.6-1.3-3.4-.9-.9-2.2-1.4-3.2-1.3z'%20fill%3D'%234CAF50'%2F%3E%3Cpath%20d%3D'M12.3%206.8c-1.7%200-2.9.9-3.7.9-.9%200-2.3-.9-3.8-.9C2.3%206.8%200%209.2%200%2013c0%203.9%202.7%209.6%205.5%209.6%201.2%200%201.7-.8%202.9-.8s1.6.8%202.9.8c1.6%200%202.8-1.4%203.8-3%20.6-1%201-1.9%201.3-2.7-2.3-.9-2.9-4.1-1-5.9-.9-1.3-2.4-2.2-4.1-2.2z'%20fill%3D'%235b2fe0'%20transform%3D'translate(4.5%2C0)'%2F%3E%3Ccircle%20cx%3D'19'%20cy%3D'11.5'%20r%3D'3.6'%20fill%3D'white'%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +54,7 @@
       <span class="search-icon">🔍</span>
     </div>
 
-    <a href="perfil.html" class="account-btn" id="accountBtn">👤 <span id="accountLabel">Entrar</span></a>
+    <a href="perfil.html" class="account-btn active" id="accountBtn">👤 <span id="accountLabel">Entrar</span></a>
     <button class="cart-btn" id="cartOpenBtn" aria-label="Abrir carrinho">
       🛒 <span class="cart-count" id="cartCount">0</span>
     </button>
@@ -63,105 +63,11 @@
 
 <main>
   <div class="pdp-breadcrumb">
-    <a href="index.html">Início</a> › <a href="index.html#catalogo">Catálogo</a> › <span id="pdpBreadcrumbName">iPhone</span>
+    <a href="index.html">Início</a> › <span>Minha conta</span>
   </div>
 
-  <div id="pdpNotFound" class="pdp-not-found" hidden>
-    <h2>Produto não encontrado</h2>
-    <p>O modelo que você procura não existe ou não está mais disponível.</p>
-    <a href="index.html#catalogo" class="btn btn-primary">Voltar para o catálogo</a>
-  </div>
-
-  <section id="pdpRoot" class="pdp">
-    <div class="pdp-gallery">
-      <div class="pdp-photo-wrap">
-        <span class="badge badge-discount pdp-discount-badge" id="pdpDiscountBadge"></span>
-        <span class="pdp-concept-tag" id="pdpConceptTag" hidden>🎨 Imagem conceitual · ainda não lançado</span>
-        <img id="pdpImage" src="" alt="" loading="eager">
-      </div>
-      <div class="pdp-thumbs" id="pdpThumbs"></div>
-    </div>
-
-    <div class="pdp-info">
-      <h1 id="pdpName"></h1>
-      <p class="pdp-tagline" id="pdpTagline"></p>
-
-      <div class="pdp-highlights" id="pdpHighlights"></div>
-
-      <div id="pdpBuyBox">
-        <div class="condition-toggle" id="pdpCondToggle">
-          <button class="cond-btn" data-cond="novo">Novo</button>
-          <button class="cond-btn" data-cond="recon">Recondicionado</button>
-        </div>
-        <label class="options-row">Armazenamento
-          <select class="storage-select" id="pdpStorageSelect"></select>
-        </label>
-        <div class="price-block pdp-price-block">
-          <span class="price-de" id="pdpPriceDe"></span>
-          <span class="price-por" id="pdpPricePor"></span>
-          <span class="price-installment" id="pdpInstallment"></span>
-        </div>
-        <div class="stock-note" id="pdpStockNote"></div>
-        <button class="btn btn-add-cart" id="pdpAddBtn">Adicionar ao carrinho</button>
-      </div>
-
-      <div id="pdpPresaleBox" hidden>
-        <p>Este modelo ainda não foi lançado. Está disponível para <strong>pré-venda</strong>.</p>
-        <p class="pdp-presale-price">A partir de <strong id="pdpPresalePrice"></strong></p>
-        <a href="index.html#presale" class="btn btn-primary">Reservar na pré-venda →</a>
-      </div>
-
-      <ul class="pdp-trust-list">
-        <li>🛠️ 12 meses de garantia</li>
-        <li>🚚 Envio em 24h</li>
-        <li>🔄 7 dias para troca ou devolução</li>
-      </ul>
-    </div>
-
-    <div class="pdp-description-block">
-      <h2>Sobre este modelo</h2>
-      <p id="pdpDescription"></p>
-    </div>
-
-    <div class="pdp-specs-block">
-      <h2>Especificações</h2>
-      <div id="pdpSpecs"></div>
-    </div>
-
-    <div class="pdp-trust-section">
-      <h2>Por que comprar este iPhone na Lux iPhones</h2>
-      <div class="pdp-trust-grid">
-        <div class="recon-feature"><span class="ri-icon">🛡️</span><h4>Garantia de 12 meses</h4><p>Todo aparelho, novo ou recondicionado, sai com garantia completa da loja.</p></div>
-        <div class="recon-feature"><span class="ri-icon">🧪</span><h4>+40 pontos de testes</h4><p>Bateria, tela, câmeras, botões e conectividade checados antes do envio.</p></div>
-        <div class="recon-feature"><span class="ri-icon">🧾</span><h4>Nota fiscal inclusa</h4><p>Compra 100% documentada, sem letras miúdas.</p></div>
-        <div class="recon-feature"><span class="ri-icon">🔄</span><h4>7 dias para trocar</h4><p>Não gostou? Devolução ou troca sem burocracia.</p></div>
-        <div class="recon-feature"><span class="ri-icon">🚚</span><h4>Envio em 24h</h4><p>Despachamos no dia útil seguinte à confirmação do pagamento.</p></div>
-        <div class="recon-feature"><span class="ri-icon">💳</span><h4>Parcelamento facilitado</h4><p>Em até 10x sem juros no cartão, ou 5% de desconto pagando no Pix.</p></div>
-      </div>
-    </div>
-
-    <div class="pdp-faq-block" id="pdpFaqBlock" hidden>
-      <h2>Perguntas frequentes sobre este modelo</h2>
-      <div class="faq-list" id="pdpFaqList"></div>
-    </div>
-
-    <div class="pdp-reviews-block" id="pdpReviewsBlock" hidden>
-      <h2>Avaliações de quem já comprou</h2>
-      <div class="pdp-rating-summary">
-        <span class="pdp-rating-score" id="pdpRatingScore">4.8</span>
-        <div class="pdp-rating-info">
-          <span class="pdp-rating-stars" id="pdpRatingStars">★★★★★</span>
-          <span class="pdp-rating-count" id="pdpRatingCount"></span>
-        </div>
-      </div>
-      <div class="pdp-reviews-list" id="pdpReviewsList"></div>
-    </div>
-
-    <div class="pdp-comments-block" id="pdpCommentsBlock" hidden>
-      <h2>Comentários de clientes</h2>
-      <p class="pdp-comments-summary" id="pdpCommentsSummary"></p>
-      <div class="pdp-comments-list" id="pdpCommentsList"></div>
-    </div>
+  <section class="profile-page" id="profileRoot">
+    <p class="empty-msg">Carregando...</p>
   </section>
 </main>
 
@@ -263,10 +169,9 @@
 <!-- TOASTS -->
 <div class="toast-container" id="toastContainer"></div>
 
-
 <script src="https://sdk.mercadopago.com/js/v2"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="js/script.js"></script>
-<script src="js/produto.js"></script>
+<script src="js/perfil.js"></script>
 </body>
 </html>

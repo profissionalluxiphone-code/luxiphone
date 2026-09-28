@@ -30,14 +30,37 @@ mainNav.querySelectorAll('[data-close-menu]').forEach(link => {
 });
 
 // ================= HEADER SEARCH =================
+// Na página inicial filtra o catálogo em tempo real. Em outras páginas (ex: produto.html,
+// que não têm catálogo pra filtrar) a busca leva pro catálogo já filtrado ao dar Enter.
 const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  document.querySelectorAll('.product-card').forEach(card => {
-    const model = card.dataset.model.toLowerCase();
-    card.classList.toggle('hidden', q.length > 0 && !model.includes(q));
+const searchIcon = document.querySelector('.search-icon');
+const hasCatalogOnPage = document.querySelectorAll('.product-card').length > 0;
+
+if (hasCatalogOnPage) {
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll('.product-card').forEach(card => {
+      const model = card.dataset.model.toLowerCase();
+      card.classList.toggle('hidden', q.length > 0 && !model.includes(q));
+    });
   });
-});
+
+  // Chegou aqui vindo de outra página com uma busca (?search=...): aplica e rola até o catálogo.
+  const incomingSearch = new URLSearchParams(location.search).get('search');
+  if (incomingSearch) {
+    searchInput.value = incomingSearch;
+    searchInput.dispatchEvent(new Event('input'));
+    const catalogSection = document.getElementById('catalogo');
+    if (catalogSection) setTimeout(() => catalogSection.scrollIntoView({ behavior: 'smooth' }), 300);
+  }
+} else {
+  const goToCatalogSearch = () => {
+    const q = searchInput.value.trim();
+    location.href = q ? `index.html?search=${encodeURIComponent(q)}#catalogo` : 'index.html#catalogo';
+  };
+  searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') goToCatalogSearch(); });
+  if (searchIcon) searchIcon.addEventListener('click', goToCatalogSearch);
+}
 
 // ================= PRODUCT CARDS: condition + storage pricing =================
 function recalcCard(card) {
@@ -577,7 +600,6 @@ async function submitCardPayment(cardFormData) {
 // ================= AUTH: login com Google (exigido para finalizar compra) =================
 let currentUser = null;
 let googleClientId = null;
-let googleButtonRendered = false;
 
 async function loadAuthConfig() {
   if (location.protocol === 'file:') return;
@@ -591,8 +613,14 @@ async function loadAuthConfig() {
   }
 }
 
+function updateAccountLink() {
+  const label = document.getElementById('accountLabel');
+  if (!label) return;
+  label.textContent = currentUser ? currentUser.name.split(' ')[0] : 'Entrar';
+}
+
 async function loadCurrentUser() {
-  if (location.protocol === 'file:') { updateCheckoutAuthUI(); return; }
+  if (location.protocol === 'file:') { updateCheckoutAuthUI(); updateAccountLink(); return; }
   try {
     const resp = await fetch('/api/auth/me');
     currentUser = resp.ok ? (await resp.json()).user : null;
@@ -600,19 +628,12 @@ async function loadCurrentUser() {
     currentUser = null;
   }
   updateCheckoutAuthUI();
+  updateAccountLink();
 }
 
-function initGoogleSignIn() {
-  if (googleButtonRendered || !googleClientId || !window.google || !window.google.accounts) return;
-  const btnEl = document.getElementById('googleSignInBtn');
-  if (!btnEl) return;
-  google.accounts.id.initialize({ client_id: googleClientId, callback: handleGoogleCredential });
-  google.accounts.id.renderButton(btnEl, { theme: 'outline', size: 'large', width: 260, locale: 'pt-BR' });
-  googleButtonRendered = true;
-}
-
-async function handleGoogleCredential(response) {
-  const errEl = document.getElementById('loginGateError');
+// ---------- Componente reutilizável: Google + e-mail/senha (checkout e página de perfil) ----------
+async function handleGoogleCredentialGeneric(response, scopeEl, onSuccess) {
+  const errorEl = scopeEl.querySelector('.auth-error');
   try {
     const resp = await fetch('/api/auth/google', {
       method: 'POST',
@@ -621,15 +642,104 @@ async function handleGoogleCredential(response) {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      if (errEl) { errEl.textContent = data.error || 'Não foi possível entrar com o Google.'; errEl.hidden = false; }
+      if (errorEl) { errorEl.textContent = data.error || 'Não foi possível entrar com o Google.'; errorEl.hidden = false; }
       return;
     }
-    if (errEl) errEl.hidden = true;
     currentUser = data.user;
-    updateCheckoutAuthUI();
+    onSuccess(data.user);
   } catch (err) {
-    if (errEl) { errEl.textContent = 'Erro ao conectar. Tente novamente.'; errEl.hidden = false; }
+    if (errorEl) { errorEl.textContent = 'Erro ao conectar. Tente novamente.'; errorEl.hidden = false; }
   }
+}
+
+function mountAuthUI(containerId, { onSuccess, introText } = {}) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = `
+    ${introText ? `<p class="auth-intro">${introText}</p>` : ''}
+    <div class="auth-google" id="${containerId}-google"></div>
+    <div class="auth-divider"><span>ou</span></div>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-tab="login">Entrar</button>
+      <button type="button" class="auth-tab" data-tab="register">Criar conta</button>
+    </div>
+    <form class="auth-form" data-mode="login">
+      <input type="text" name="name" placeholder="Nome completo" class="auth-name-field" hidden>
+      <input type="email" name="email" placeholder="Seu e-mail" required autocomplete="email">
+      <input type="password" name="password" placeholder="Senha (mínimo 6 caracteres)" required minlength="6" autocomplete="current-password">
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      <p class="auth-error" hidden></p>
+    </form>
+  `;
+
+  const googleEl = document.getElementById(`${containerId}-google`);
+  const dividerEl = container.querySelector('.auth-divider');
+  if (googleClientId) {
+    const tryRenderGoogle = () => {
+      if (!window.google || !window.google.accounts) { setTimeout(tryRenderGoogle, 200); return; }
+      google.accounts.id.initialize({ client_id: googleClientId, callback: (resp) => handleGoogleCredentialGeneric(resp, container, onSuccess) });
+      google.accounts.id.renderButton(googleEl, { theme: 'outline', size: 'large', width: 280, locale: 'pt-BR' });
+    };
+    tryRenderGoogle();
+  } else {
+    googleEl.hidden = true;
+    if (dividerEl) dividerEl.hidden = true;
+  }
+
+  const tabs = container.querySelectorAll('.auth-tab');
+  const form = container.querySelector('.auth-form');
+  const nameField = form.querySelector('.auth-name-field');
+  const passwordField = form.querySelector('input[name="password"]');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const errorEl = form.querySelector('.auth-error');
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      const mode = tab.dataset.tab;
+      form.dataset.mode = mode;
+      nameField.hidden = mode !== 'register';
+      nameField.required = mode === 'register';
+      passwordField.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+      submitBtn.textContent = mode === 'register' ? 'Criar conta' : 'Entrar';
+      errorEl.hidden = true;
+    });
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+    const mode = form.dataset.mode;
+    const email = form.email.value.trim();
+    const password = form.password.value;
+    const name = form.name.value.trim();
+    const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const payload = mode === 'register' ? { name, email, password } : { email, password };
+
+    submitBtn.disabled = true;
+    try {
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        errorEl.textContent = data.error || 'Não foi possível concluir.';
+        errorEl.hidden = false;
+        return;
+      }
+      currentUser = data.user;
+      onSuccess(data.user);
+    } catch (err) {
+      errorEl.textContent = 'Erro ao conectar. Tente novamente.';
+      errorEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 }
 
 function updateCheckoutAuthUI() {
@@ -662,7 +772,10 @@ function updateCheckoutAuthUI() {
     loginGate.hidden = false;
     loggedInBar.hidden = true;
     form.hidden = true;
-    initGoogleSignIn();
+    mountAuthUI('loginGate', {
+      introText: 'Entre ou crie sua conta para continuar a compra.',
+      onSuccess: () => updateCheckoutAuthUI()
+    });
   }
 }
 

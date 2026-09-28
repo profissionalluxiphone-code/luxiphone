@@ -48,6 +48,40 @@ function verifySession(token) {
   return userId;
 }
 
+// ---------- Senha (cadastro sem Google) ----------
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  if (!stored || typeof stored !== 'string' || !stored.includes(':')) return false;
+  const [salt, hash] = stored.split(':');
+  const hashBuf = Buffer.from(hash, 'hex');
+  const testBuf = crypto.scryptSync(password, salt, 64);
+  return hashBuf.length === testBuf.length && crypto.timingSafeEqual(hashBuf, testBuf);
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+// ---------- Limitador simples de tentativas (login/cadastro) ----------
+// Em memória: suficiente pra uma única instância (plano free do Render), sem
+// precisar de Redis. Reinicia a cada deploy, o que é aceitável aqui.
+const attempts = new Map();
+function rateLimit(key, max, windowMs) {
+  const now = Date.now();
+  const entry = attempts.get(key);
+  if (!entry || now - entry.start > windowMs) {
+    attempts.set(key, { start: now, count: 1 });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= max;
+}
+
 function setSessionCookie(res, userId, secure) {
   res.cookie(SESSION_COOKIE, signSession(userId), {
     httpOnly: true,
@@ -70,6 +104,10 @@ module.exports = {
   SESSION_COOKIE,
   isGoogleLoginConfigured,
   verifyGoogleCredential,
+  hashPassword,
+  verifyPassword,
+  normalizeEmail,
+  rateLimit,
   setSessionCookie,
   clearSessionCookie,
   getSessionUserId
