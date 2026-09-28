@@ -205,23 +205,29 @@ function setCondition(card, cond) {
 }
 
 // ================= SORT =================
-document.getElementById('sortSelect').addEventListener('change', (e) => {
-  const grid = document.getElementById('productGrid');
-  const cards = Array.from(grid.querySelectorAll('.product-card'));
-  const mode = e.target.value;
+// (só existe na página de catálogo — nas páginas de produto individual, #sortSelect não existe)
+const sortSelectEl = document.getElementById('sortSelect');
+if (sortSelectEl) {
+  sortSelectEl.addEventListener('change', (e) => {
+    const grid = document.getElementById('productGrid');
+    const cards = Array.from(grid.querySelectorAll('.product-card'));
+    const mode = e.target.value;
 
-  cards.sort((a, b) => {
-    if (mode === 'menor') return a.dataset.currentPrice - b.dataset.currentPrice;
-    if (mode === 'maior') return b.dataset.currentPrice - a.dataset.currentPrice;
-    return 0;
+    cards.sort((a, b) => {
+      if (mode === 'menor') return a.dataset.currentPrice - b.dataset.currentPrice;
+      if (mode === 'maior') return b.dataset.currentPrice - a.dataset.currentPrice;
+      return 0;
+    });
+
+    cards.forEach(card => grid.appendChild(card));
   });
-
-  cards.forEach(card => grid.appendChild(card));
-});
+}
 
 // ================= BLACK FRIDAY: countdown =================
 const bfEndDate = new Date('2026-12-01T23:59:59').getTime();
 function updateBFCountdown() {
+  const daysEl = document.getElementById('bfDays');
+  if (!daysEl) return; // seção não presente nesta página
   const now = Date.now();
   const diff = Math.max(0, bfEndDate - now);
 
@@ -230,7 +236,7 @@ function updateBFCountdown() {
   const mins = Math.floor((diff / (1000 * 60)) % 60);
   const secs = Math.floor((diff / 1000) % 60);
 
-  document.getElementById('bfDays').textContent = String(days).padStart(2, '0');
+  daysEl.textContent = String(days).padStart(2, '0');
   document.getElementById('bfHours').textContent = String(hours).padStart(2, '0');
   document.getElementById('bfMin').textContent = String(mins).padStart(2, '0');
   document.getElementById('bfSec').textContent = String(secs).padStart(2, '0');
@@ -241,6 +247,8 @@ setInterval(updateBFCountdown, 1000);
 // ================= PRESALE: countdown =================
 const launchDate = new Date('2026-10-20T00:00:00').getTime();
 function updateCountdown() {
+  const daysEl = document.getElementById('cdDays');
+  if (!daysEl) return; // seção de pré-venda não presente nesta página
   const now = Date.now();
   const diff = Math.max(0, launchDate - now);
 
@@ -249,7 +257,7 @@ function updateCountdown() {
   const mins = Math.floor((diff / (1000 * 60)) % 60);
   const secs = Math.floor((diff / 1000) % 60);
 
-  document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+  daysEl.textContent = String(days).padStart(2, '0');
   document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
   document.getElementById('cdMin').textContent = String(mins).padStart(2, '0');
   document.getElementById('cdSec').textContent = String(secs).padStart(2, '0');
@@ -262,51 +270,65 @@ let PRESALE_BASE = 7499;
 let PRESALE_DEPOSIT = 299;
 const presaleStorageSelect = document.getElementById('presaleStorage');
 function updatePresalePrice() {
+  if (!presaleStorageSelect) return;
   const delta = parseInt(presaleStorageSelect.value, 10) || 0;
   const price = PRESALE_BASE + delta;
   document.getElementById('presalePrice').textContent = formatBRL(price);
   document.querySelector('.presale-price-block .price-installment').textContent =
     `ou 12x de ${formatBRL(price / 12)} sem juros`;
 }
-presaleStorageSelect.addEventListener('change', updatePresalePrice);
-updatePresalePrice();
+if (presaleStorageSelect) {
+  presaleStorageSelect.addEventListener('change', updatePresalePrice);
+  updatePresalePrice();
+}
 
-document.getElementById('reserveDepositBtn').addEventListener('click', () => {
-  const storageLabel = presaleStorageSelect.selectedOptions[0].textContent;
-  addToCart({
-    id: `iphone-18-reserva-${storageLabel}`,
-    productId: 'iphone-18',
-    reservationOnly: true,
-    storageLabel,
-    name: 'iPhone 18 (Reserva)',
-    variant: `Depósito de reserva · ${storageLabel}`,
-    price: PRESALE_DEPOSIT,
-    initials: '18'
+const reserveDepositBtn = document.getElementById('reserveDepositBtn');
+if (reserveDepositBtn) {
+  reserveDepositBtn.addEventListener('click', () => {
+    const storageLabel = presaleStorageSelect.selectedOptions[0].textContent;
+    addToCart({
+      id: `iphone-18-reserva-${storageLabel}`,
+      productId: 'iphone-18',
+      reservationOnly: true,
+      storageLabel,
+      name: 'iPhone 18 (Reserva)',
+      variant: `Depósito de reserva · ${storageLabel}`,
+      price: PRESALE_DEPOSIT,
+      initials: '18'
+    });
+    openCart();
+    showToast('⚡', 'Reserva confirmada!', `Depósito de ${formatBRL(PRESALE_DEPOSIT)} adicionado ao carrinho`);
   });
-  openCart();
-  showToast('⚡', 'Reserva confirmada!', `Depósito de ${formatBRL(PRESALE_DEPOSIT)} adicionado ao carrinho`);
-});
+}
 
-document.getElementById('buyFullPresaleBtn').addEventListener('click', () => {
-  const storageLabel = presaleStorageSelect.selectedOptions[0].textContent;
-  const delta = parseInt(presaleStorageSelect.value, 10) || 0;
-  addToCart({
-    id: `iphone-18-full-${storageLabel}`,
-    productId: 'iphone-18',
-    reservationOnly: false,
-    storageLabel,
-    name: 'iPhone 18 (Pré-venda)',
-    variant: `Valor cheio · ${storageLabel}`,
-    price: PRESALE_BASE + delta,
-    initials: '18'
+const buyFullPresaleBtn = document.getElementById('buyFullPresaleBtn');
+if (buyFullPresaleBtn) {
+  buyFullPresaleBtn.addEventListener('click', () => {
+    const storageLabel = presaleStorageSelect.selectedOptions[0].textContent;
+    const delta = parseInt(presaleStorageSelect.value, 10) || 0;
+    addToCart({
+      id: `iphone-18-full-${storageLabel}`,
+      productId: 'iphone-18',
+      reservationOnly: false,
+      storageLabel,
+      name: 'iPhone 18 (Pré-venda)',
+      variant: `Valor cheio · ${storageLabel}`,
+      price: PRESALE_BASE + delta,
+      initials: '18'
+    });
+    openCart();
   });
-  openCart();
-});
+}
 
 // ================= TESTIMONIAL CAROUSEL =================
+// (só existe na página inicial)
 const track = document.getElementById('testimonialTrack');
-document.getElementById('carouselPrev').addEventListener('click', () => track.scrollBy({ left: -340, behavior: 'smooth' }));
-document.getElementById('carouselNext').addEventListener('click', () => track.scrollBy({ left: 340, behavior: 'smooth' }));
+const carouselPrevBtn = document.getElementById('carouselPrev');
+const carouselNextBtn = document.getElementById('carouselNext');
+if (track && carouselPrevBtn && carouselNextBtn) {
+  carouselPrevBtn.addEventListener('click', () => track.scrollBy({ left: -340, behavior: 'smooth' }));
+  carouselNextBtn.addEventListener('click', () => track.scrollBy({ left: 340, behavior: 'smooth' }));
+}
 
 // ================= CART =================
 let cart = [];
@@ -392,6 +414,150 @@ document.getElementById('cartOpenBtn').addEventListener('click', openCart);
 document.getElementById('cartCloseBtn').addEventListener('click', closeCart);
 overlay.addEventListener('click', () => { closeCart(); closeCheckout(); });
 
+// ================= PAYMENT: Mercado Pago config + Card Brick =================
+let PAYMENT_CONFIG = { embeddedCard: false, publicKey: null };
+let mpInstance = null;
+let cardBrickController = null;
+
+const DEFAULT_SECURITY_NOTE = '🔒 Seus dados estão protegidos. Nenhum dado de cartão é solicitado neste site — o pagamento é confirmado com segurança pela nossa equipe.';
+const CARD_SECURITY_NOTE = '🔒 Pagamento processado com segurança pelo Mercado Pago. O número do seu cartão é criptografado no navegador e nunca chega aos nossos servidores.';
+
+async function loadPaymentConfig() {
+  if (location.protocol === 'file:') return;
+  try {
+    const resp = await fetch('/api/payments/config');
+    if (!resp.ok) return;
+    PAYMENT_CONFIG = await resp.json();
+    if (PAYMENT_CONFIG.embeddedCard && window.MercadoPago) {
+      mpInstance = new MercadoPago(PAYMENT_CONFIG.publicKey, { locale: 'pt-BR' });
+    }
+  } catch (err) {
+    // Backend indisponível — segue no fluxo manual/redirecionamento.
+  }
+}
+
+async function mountCardBrick(amount) {
+  const wrap = document.getElementById('cardBrickWrap');
+  const loading = document.getElementById('cardBrickLoading');
+  wrap.hidden = false;
+  loading.hidden = false;
+
+  if (cardBrickController) {
+    try { await cardBrickController.unmount(); } catch (err) { /* já desmontado */ }
+    cardBrickController = null;
+  }
+
+  try {
+    const bricksBuilder = mpInstance.bricks();
+    cardBrickController = await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', {
+      initialization: { amount },
+      callbacks: {
+        onReady: () => { loading.hidden = true; },
+        onSubmit: (cardFormData) => submitCardPayment(cardFormData),
+        onError: (error) => {
+          console.error('Erro no formulário de cartão (Mercado Pago):', error);
+          showToast('⚠️', 'Erro no formulário de cartão', 'Verifique os dados e tente novamente.');
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Não foi possível carregar o formulário de cartão:', err);
+    loading.textContent = 'Não foi possível carregar o pagamento por cartão agora. Escolha Pix ou boleto, ou tente novamente em instantes.';
+  }
+}
+
+function unmountCardBrick() {
+  document.getElementById('cardBrickWrap').hidden = true;
+  if (cardBrickController) {
+    cardBrickController.unmount().catch(() => {});
+    cardBrickController = null;
+  }
+}
+
+function handlePaymentMethodChange() {
+  const method = document.querySelector('input[name="payment"]:checked').value;
+  const submitBtn = document.getElementById('checkoutSubmitBtn');
+  const securityNote = document.getElementById('modalSecurityNote');
+
+  if (method === 'cartao' && PAYMENT_CONFIG.embeddedCard && mpInstance) {
+    submitBtn.hidden = true;
+    securityNote.textContent = CARD_SECURITY_NOTE;
+    mountCardBrick(cartTotal());
+  } else {
+    submitBtn.hidden = false;
+    securityNote.textContent = DEFAULT_SECURITY_NOTE;
+    unmountCardBrick();
+  }
+}
+
+document.querySelectorAll('input[name="payment"]').forEach((radio) => {
+  radio.addEventListener('change', handlePaymentMethodChange);
+});
+
+// Cria o pedido (status "aguardando pagamento") e cobra o cartão tokenizado pelo Brick.
+// Só mostra a tela de sucesso depois da resposta real da cobrança — nunca antes.
+async function submitCardPayment(cardFormData) {
+  const form = document.getElementById('checkoutForm');
+  const customerName = form.querySelector('input[type="text"]').value.trim();
+  const whatsapp = form.querySelector('input[type="tel"]').value.trim();
+  const email = document.getElementById('checkoutEmail').value.trim();
+
+  if (!customerName || !whatsapp || !email) {
+    showToast('⚠️', 'Preencha seus dados', 'Nome, WhatsApp e e-mail são obrigatórios.');
+    throw new Error('Dados do cliente incompletos.');
+  }
+
+  const orderPayload = {
+    customerName,
+    whatsapp,
+    paymentMethod: 'cartao',
+    items: cart.map((item) => ({
+      productId: item.productId,
+      condition: item.condition,
+      storageLabel: item.storageLabel,
+      reservationOnly: !!item.reservationOnly,
+      qty: item.qty
+    }))
+  };
+
+  const orderResp = await fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderPayload)
+  });
+  const orderData = await orderResp.json();
+  if (!orderResp.ok) {
+    showToast('⚠️', 'Não foi possível criar o pedido', orderData.error || 'Tente novamente em instantes.');
+    throw new Error(orderData.error || 'Falha ao criar pedido.');
+  }
+
+  const chargeResp = await fetch('/api/payments/card', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      orderNumber: orderData.orderNumber,
+      token: cardFormData.token,
+      paymentMethodId: cardFormData.payment_method_id,
+      installments: cardFormData.installments,
+      issuerId: cardFormData.issuer_id,
+      payerEmail: (cardFormData.payer && cardFormData.payer.email) || email,
+      docType: cardFormData.payer && cardFormData.payer.identification && cardFormData.payer.identification.type,
+      docNumber: cardFormData.payer && cardFormData.payer.identification && cardFormData.payer.identification.number
+    })
+  });
+  const chargeData = await chargeResp.json();
+
+  if (!chargeResp.ok) {
+    showToast('⚠️', 'Pagamento não aprovado', chargeData.error || 'Verifique os dados do cartão e tente novamente.');
+    loadLiveStock();
+    throw new Error(chargeData.error || 'Cobrança recusada.');
+  }
+
+  const variant = chargeData.status === 'approved' ? 'success' : chargeData.status === 'rejected' ? 'failure' : 'pending';
+  finishCheckoutUI(orderData.orderNumber, variant);
+  loadLiveStock();
+}
+
 // ================= CHECKOUT MODAL =================
 const checkoutOverlay = document.getElementById('checkoutOverlay');
 const checkoutStep1 = document.getElementById('checkoutStep1');
@@ -405,6 +571,7 @@ function openCheckout() {
   checkoutOverlay.classList.add('active');
   checkoutStep1.hidden = false;
   checkoutStep2.hidden = true;
+  handlePaymentMethodChange();
 }
 function closeCheckout() {
   checkoutOverlay.classList.remove('active');
@@ -453,9 +620,15 @@ function finishCheckoutUI(orderNumber, variant = 'manual') {
 document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
+  const paymentMethod = form.querySelector('input[name="payment"]:checked').value;
+
+  if (paymentMethod === 'cartao' && PAYMENT_CONFIG.embeddedCard) {
+    // O Card Payment Brick tem seu próprio botão e cuida do próprio envio/cobrança.
+    return;
+  }
+
   const customerName = form.querySelector('input[type="text"]').value.trim();
   const whatsapp = form.querySelector('input[type="tel"]').value.trim();
-  const paymentMethod = form.querySelector('input[name="payment"]:checked').value;
   const submitBtn = form.querySelector('button[type="submit"]');
 
   const payload = {
@@ -531,11 +704,15 @@ document.getElementById('closeSuccessBtn').addEventListener('click', () => {
 });
 
 // ================= NEWSLETTER =================
-document.getElementById('newsletterForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  document.getElementById('newsletterMsg').textContent = '✔ Inscrito com sucesso! Fique de olho no seu e-mail.';
-  e.target.reset();
-});
+// (só existe na página inicial)
+const newsletterForm = document.getElementById('newsletterForm');
+if (newsletterForm) {
+  newsletterForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('newsletterMsg').textContent = '✔ Inscrito com sucesso! Fique de olho no seu e-mail.';
+    e.target.reset();
+  });
+}
 
 // ================= TOASTS: manual + social proof feed =================
 const toastContainer = document.getElementById('toastContainer');
@@ -587,10 +764,13 @@ const observer = new IntersectionObserver((entries) => {
 revealTargets.forEach(el => observer.observe(el));
 
 // ================= WHATSAPP FLOAT =================
-document.getElementById('whatsappFloat').addEventListener('click', (e) => {
-  e.preventDefault();
-  showToast('💬', 'Atendimento NovaCell', 'Em um site real, este botão abriria o WhatsApp da loja.');
-});
+const whatsappFloatBtn = document.getElementById('whatsappFloat');
+if (whatsappFloatBtn) {
+  whatsappFloatBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast('💬', 'Atendimento NovaCell', 'Em um site real, este botão abriria o WhatsApp da loja.');
+  });
+}
 
 // ================= PAYMENT RETURN: coming back from Mercado Pago checkout =================
 async function handlePaymentReturn() {
@@ -620,4 +800,5 @@ async function handlePaymentReturn() {
 
 // ================= INIT: pull live prices/stock from the backend, if running =================
 loadLiveStock();
+loadPaymentConfig();
 handlePaymentReturn();

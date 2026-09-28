@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPhone — NovaCell</title>
+<meta name="description" content="Confira preço, condição, estoque e especificações completas na NovaCell, com garantia de 12 meses e frete grátis.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ANNOUNCEMENT BAR -->
+<div class="announce-bar bf-announce-bar">
+  <div class="announce-track">
+    <span>🔥 BLACK FRIDAY: até 55% OFF em todo o site</span>
+    <span>🚚 Frete grátis para todo o Brasil</span>
+    <span>💳 Em até 12x sem juros</span>
+    <span>🎁 Brinde exclusivo em compras acima de R$ 2.000</span>
+    <span>🛠️ 12 meses de garantia em todos os produtos</span>
+    <span>🔥 BLACK FRIDAY: até 55% OFF em todo o site</span>
+    <span>🚚 Frete grátis para todo o Brasil</span>
+    <span>💳 Em até 12x sem juros</span>
+    <span>🎁 Brinde exclusivo em compras acima de R$ 2.000</span>
+    <span>🛠️ 12 meses de garantia em todos os produtos</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <a href="index.html" class="logo">
+      <span class="logo-mark">📱</span>
+      <span class="logo-text">Nova<strong>Cell</strong></span>
+    </a>
+
+    <nav class="main-nav" id="mainNav">
+      <a href="index.html#catalogo" data-close-menu>Novos</a>
+      <a href="index.html#recondicionados-info" data-close-menu>Recondicionados</a>
+      <a href="index.html#presale" class="nav-highlight" data-close-menu>Pré-venda iPhone 18</a>
+      <a href="index.html#avaliacoes" data-close-menu>Avaliações</a>
+      <a href="index.html#faq" data-close-menu>Dúvidas</a>
+    </nav>
+
+    <div class="header-search">
+      <input type="text" id="searchInput" placeholder="Buscar iPhone (ex: 13, 15 Pro...)">
+      <span class="search-icon">🔍</span>
+    </div>
+
+    <button class="cart-btn" id="cartOpenBtn" aria-label="Abrir carrinho">
+      🛒 <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="pdp-breadcrumb">
+    <a href="index.html">Início</a> › <a href="index.html#catalogo">Catálogo</a> › <span id="pdpBreadcrumbName">iPhone</span>
+  </div>
+
+  <div id="pdpNotFound" class="pdp-not-found" hidden>
+    <h2>Produto não encontrado</h2>
+    <p>O modelo que você procura não existe ou não está mais disponível.</p>
+    <a href="index.html#catalogo" class="btn btn-primary">Voltar para o catálogo</a>
+  </div>
+
+  <section id="pdpRoot" class="pdp">
+    <div class="pdp-gallery">
+      <div class="pdp-photo-wrap">
+        <span class="badge badge-discount pdp-discount-badge" id="pdpDiscountBadge"></span>
+        <img id="pdpImage" src="" alt="" loading="eager">
+      </div>
+    </div>
+
+    <div class="pdp-info">
+      <h1 id="pdpName"></h1>
+      <p class="pdp-tagline" id="pdpTagline"></p>
+
+      <div id="pdpBuyBox">
+        <div class="condition-toggle" id="pdpCondToggle">
+          <button class="cond-btn" data-cond="novo">Novo</button>
+          <button class="cond-btn" data-cond="recon">Recondicionado</button>
+        </div>
+        <label class="options-row">Armazenamento
+          <select class="storage-select" id="pdpStorageSelect"></select>
+        </label>
+        <div class="price-block pdp-price-block">
+          <span class="price-de" id="pdpPriceDe"></span>
+          <span class="price-por" id="pdpPricePor"></span>
+          <span class="price-installment" id="pdpInstallment"></span>
+        </div>
+        <div class="stock-note" id="pdpStockNote"></div>
+        <button class="btn btn-add-cart" id="pdpAddBtn">Adicionar ao carrinho</button>
+      </div>
+
+      <div id="pdpPresaleBox" hidden>
+        <p>Este modelo ainda não foi lançado — está disponível para <strong>pré-venda</strong>.</p>
+        <p class="pdp-presale-price">A partir de <strong id="pdpPresalePrice"></strong></p>
+        <a href="index.html#presale" class="btn btn-primary">Reservar na pré-venda →</a>
+      </div>
+
+      <ul class="pdp-trust-list">
+        <li>🛠️ 12 meses de garantia</li>
+        <li>🚚 Envio em 24h</li>
+        <li>🔄 7 dias para troca ou devolução</li>
+      </ul>
+    </div>
+
+    <div class="pdp-description-block">
+      <h2>Sobre este modelo</h2>
+      <p id="pdpDescription"></p>
+    </div>
+
+    <div class="pdp-specs-block">
+      <h2>Especificações</h2>
+      <div id="pdpSpecs"></div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <a href="index.html" class="logo footer-logo"><span class="logo-mark">📱</span><span class="logo-text">Nova<strong>Cell</strong></span></a>
+      <p>Sua loja especializada em iPhones novos e recondicionados, com garantia e segurança em cada compra.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Institucional</h5>
+      <a href="index.html#catalogo">Catálogo</a>
+      <a href="index.html#recondicionados-info">Recondicionados</a>
+      <a href="index.html#avaliacoes">Avaliações</a>
+      <a href="index.html#faq">Perguntas frequentes</a>
+    </div>
+    <div class="footer-col">
+      <h5>Políticas</h5>
+      <a href="#">Política de Trocas e Devoluções</a>
+      <a href="#">Política de Privacidade</a>
+      <a href="#">Termos de Uso</a>
+      <a href="#">Garantia</a>
+    </div>
+    <div class="footer-col">
+      <h5>Atendimento</h5>
+      <a href="#">📞 (11) 4000-0000</a>
+      <a href="#">✉️ contato@novacell.com.br</a>
+      <a href="#">💬 WhatsApp: (11) 90000-0000</a>
+      <div class="footer-social">
+        <span>Instagram</span><span>Facebook</span><span>TikTok</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 NovaCell Store. Todos os direitos reservados.</p>
+    <p class="footer-disclaimer">iPhone e Apple são marcas registradas da Apple Inc. A NovaCell é uma loja independente e não possui vínculo oficial com a Apple. Preços e imagens ilustrativos, sujeitos a alteração.</p>
+  </div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="overlay" id="overlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-drawer-head">
+    <h3>Seu carrinho</h3>
+    <button id="cartCloseBtn" aria-label="Fechar carrinho">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <p class="cart-empty" id="cartEmptyMsg">Seu carrinho está vazio.</p>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-subtotal"><span>Subtotal</span><strong id="cartSubtotal">R$ 0,00</strong></div>
+    <button class="btn btn-primary btn-block" id="checkoutBtn">Finalizar compra</button>
+  </div>
+</aside>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutOverlay">
+  <div class="modal" id="checkoutModal">
+    <button class="modal-close" id="checkoutCloseBtn" aria-label="Fechar">✕</button>
+    <div id="checkoutStep1">
+      <h3>Finalizar pedido</h3>
+      <p class="modal-sub">Preencha seus dados para nossa equipe confirmar o pagamento e a entrega com você.</p>
+      <form id="checkoutForm">
+        <label>Nome completo<input type="text" required placeholder="Seu nome"></label>
+        <label>WhatsApp<input type="tel" required placeholder="(11) 90000-0000"></label>
+        <label>E-mail<input type="email" required placeholder="voce@email.com" id="checkoutEmail"></label>
+        <label>Forma de pagamento
+          <div class="payment-options">
+            <label class="payment-radio"><input type="radio" name="payment" value="pix" checked> Pix (5% de desconto)</label>
+            <label class="payment-radio"><input type="radio" name="payment" value="cartao"> Cartão de crédito (até 12x)</label>
+            <label class="payment-radio"><input type="radio" name="payment" value="boleto"> Boleto bancário</label>
+          </div>
+        </label>
+
+        <div id="cardBrickWrap" hidden>
+          <div id="cardPaymentBrick_container"></div>
+          <p class="card-brick-loading" id="cardBrickLoading">Carregando formulário seguro do cartão…</p>
+        </div>
+
+        <div class="modal-total"><span>Total do pedido</span><strong id="modalTotal">R$ 0,00</strong></div>
+        <button type="submit" class="btn btn-primary btn-block" id="checkoutSubmitBtn">Confirmar pedido</button>
+        <p class="modal-security" id="modalSecurityNote">🔒 Seus dados estão protegidos. Nenhum dado de cartão é solicitado neste site — o pagamento é confirmado com segurança pela nossa equipe.</p>
+      </form>
+    </div>
+    <div id="checkoutStep2" class="checkout-success" hidden>
+      <span class="success-icon" id="successIcon">✅</span>
+      <h3 id="successTitle">Pedido recebido!</h3>
+      <p>Seu pedido <strong id="orderNumber"></strong> foi registrado com sucesso.</p>
+      <p id="successMessage">Nossa equipe entrará em contato pelo WhatsApp em até 1 hora útil para confirmar o pagamento e o prazo de entrega.</p>
+      <button class="btn btn-primary" id="closeSuccessBtn">Continuar navegando</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- WHATSAPP FLOAT -->
+<a href="#" class="whatsapp-float" id="whatsappFloat" aria-label="Fale conosco no WhatsApp">💬</a>
+
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="js/script.js"></script>
+<script src="js/produto.js"></script>
+</body>
+</html>

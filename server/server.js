@@ -103,6 +103,9 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
   await db.saveProducts(products);
 
   const usePaymentGateway = mercadopago.isConfigured();
+  // Cartão com Brick embutido é cobrado direto pelo /api/payments/card, logo em seguida —
+  // esse pedido fica "aguardando pagamento" até a cobrança confirmar, nunca é dado como concluído aqui.
+  const useEmbeddedCard = (paymentMethod === 'cartao') && mercadopago.isCardPaymentConfigured();
 
   const order = {
     orderNumber: await db.nextOrderNumber(),
@@ -122,6 +125,10 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
     return res.status(201).json(saved);
   }
 
+  if (useEmbeddedCard) {
+    return res.status(201).json({ ...saved, checkoutUrl: null, embeddedCard: true });
+  }
+
   try {
     const { checkoutUrl } = await mercadopago.createPreference(saved, getBaseUrl(req));
     res.status(201).json({ ...saved, checkoutUrl });
@@ -130,6 +137,50 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
     // O pedido já existe (status "aguardando pagamento"); o cliente pode tentar de novo
     // ou o time pode confirmar manualmente. Não derruba o checkout por falha do gateway.
     res.status(201).json({ ...saved, checkoutUrl: null, paymentError: true });
+  }
+}));
+
+// ---------- PUBLIC: PAYMENT CONFIG (chave pública para o Brick de cartão) ----------
+app.get('/api/payments/config', (req, res) => {
+  res.json({
+    embeddedCard: mercadopago.isCardPaymentConfigured(),
+    publicKey: mercadopago.isCardPaymentConfigured() ? mercadopago.getPublicKey() : null
+  });
+});
+
+// ---------- PUBLIC: CHARGE CARD (Custom Checkout — token gerado no navegador) ----------
+app.post('/api/payments/card', asyncHandler(async (req, res) => {
+  if (!mercadopago.isCardPaymentConfigured()) {
+    return res.status(400).json({ error: 'Pagamento por cartão indisponível no momento.' });
+  }
+
+  const { orderNumber, token, paymentMethodId, installments, issuerId, payerEmail, docType, docNumber } = req.body || {};
+  if (!orderNumber || !token || !paymentMethodId || !payerEmail) {
+    return res.status(400).json({ error: 'Dados de pagamento incompletos.' });
+  }
+
+  const order = await db.getOrderByNumber(orderNumber);
+  if (!order) return res.status(404).json({ error: 'Pedido não encontrado.' });
+  if (order.paymentStatus === 'approved') {
+    return res.json({ status: 'approved', statusDetail: 'already_approved', order });
+  }
+
+  try {
+    const payment = await mercadopago.chargeCard({
+      orderNumber, amount: order.total, token, paymentMethodId, installments, issuerId, payerEmail, docType, docNumber
+    });
+
+    const status = mercadopago.mapPaymentStatusToOrderStatus(payment.status);
+    const updated = await db.updateOrderPayment(orderNumber, {
+      paymentId: String(payment.id),
+      paymentStatus: payment.status,
+      status
+    });
+
+    res.json({ status: payment.status, statusDetail: payment.status_detail, order: updated });
+  } catch (err) {
+    console.error('Erro ao cobrar cartão no Mercado Pago:', err);
+    res.status(402).json({ error: 'Não foi possível processar o pagamento. Verifique os dados do cartão e tente novamente.' });
   }
 }));
 

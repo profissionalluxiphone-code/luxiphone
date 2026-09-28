@@ -39,20 +39,23 @@ O projeto já vem com um `render.yaml` pronto que cria **o site e o banco Postgr
 
 ## Gateway de pagamento (Mercado Pago)
 
-O checkout tem duas formas de operar:
+O checkout tem três formas de operar, dependendo do que estiver configurado:
 
-- **Sem credenciais configuradas (padrão):** o pedido é registrado e sua equipe confirma o pagamento manualmente pelo WhatsApp — é como o site já funcionava antes.
-- **Com `MP_ACCESS_TOKEN` configurada:** ao finalizar a compra, o cliente é redirecionado para o checkout do Mercado Pago (Pix, cartão ou boleto), e o pedido é atualizado automaticamente quando o pagamento é aprovado.
+- **Sem credenciais (padrão):** o pedido é registrado e sua equipe confirma o pagamento manualmente pelo WhatsApp — como o site funcionava antes. Nenhum dado de cartão é pedido nessa modalidade.
+- **Com `MP_ACCESS_TOKEN` (sem `MP_PUBLIC_KEY`):** Pix, cartão e boleto redirecionam o cliente para o checkout hospedado do Mercado Pago; ele volta pro site já com o pagamento confirmado.
+- **Com `MP_ACCESS_TOKEN` E `MP_PUBLIC_KEY`:** Pix e boleto continuam redirecionando; **cartão de crédito é cobrado direto no site**, num formulário seguro embutido no checkout (Card Payment Brick do Mercado Pago) — o número do cartão é criptografado no navegador e nunca passa pelo nosso servidor. O pedido só é confirmado depois da resposta real da cobrança.
 
 ### Como ativar
 
 1. Crie uma conta em [mercadopago.com.br](https://www.mercadopago.com.br) (grátis).
-2. Vá em **Seu negócio → Configurações → Credenciais de produção** (ou use as **credenciais de teste**, que já vêm prontas para simular pagamentos sem dinheiro real) em [mercadopago.com.br/developers/panel/app](https://www.mercadopago.com.br/developers/panel/app).
-3. Copie o **Access Token** e cole na variável `MP_ACCESS_TOKEN`:
+2. Vá em [mercadopago.com.br/developers/panel/app](https://www.mercadopago.com.br/developers/panel/app) → sua aplicação → **Credenciais de teste** (para simular pagamentos sem dinheiro real) ou **Credenciais de produção**.
+3. Copie as duas credenciais:
+   - **Access Token** → variável `MP_ACCESS_TOKEN` (secreta, só no servidor).
+   - **Public Key** → variável `MP_PUBLIC_KEY` (pública, ativa o formulário de cartão embutido).
    - Local: no seu `.env` (crie a partir do `.env.example`).
    - Render: aba **Environment** do serviço `novacell-store`.
    - Tokens de teste começam com `TEST-` — o site detecta isso sozinho e usa o checkout de sandbox (simulação) automaticamente.
-4. (Recomendado) Configure o **webhook** no painel do Mercado Pago (**Sua aplicação → Webhooks**) apontando para `https://<seu-site>/api/payments/webhook`, evento **Pagamentos**. Copie a "Assinatura secreta" gerada e coloque em `MP_WEBHOOK_SECRET` — sem isso, o servidor ainda funciona, mas não consegue verificar se a notificação realmente veio do Mercado Pago.
+4. (Recomendado) Configure o **webhook** no painel do Mercado Pago (**Sua aplicação → Webhooks**) apontando para `https://<seu-site>/api/payments/webhook`, evento **Pagamentos**. Copie a "Assinatura secreta" gerada e coloque em `MP_WEBHOOK_SECRET` — sem isso, o servidor ainda funciona, mas não consegue verificar se a notificação realmente veio do Mercado Pago. O webhook é o principal mecanismo de confirmação para Pix e boleto; para cartão, a confirmação já acontece na hora, mas o webhook serve como reforço (ex.: estorno posterior).
 
 ### Testando pagamentos sem gastar dinheiro de verdade
 

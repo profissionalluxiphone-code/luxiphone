@@ -13,6 +13,16 @@ function isConfigured() {
   return !!process.env.MP_ACCESS_TOKEN;
 }
 
+// A chave pública fica exposta no navegador (usada pelo SDK JS do Mercado Pago
+// para tokenizar o cartão) — é segura para expor, diferente do access token.
+function isCardPaymentConfigured() {
+  return isConfigured() && !!process.env.MP_PUBLIC_KEY;
+}
+
+function getPublicKey() {
+  return process.env.MP_PUBLIC_KEY || null;
+}
+
 function isTestToken() {
   return (process.env.MP_ACCESS_TOKEN || '').startsWith('TEST-');
 }
@@ -59,6 +69,28 @@ async function getPayment(paymentId) {
   return payment.get({ id: paymentId });
 }
 
+// Cobrança direta de cartão (Custom Checkout): recebe o token já gerado no
+// navegador pelo Card Payment Brick (o número do cartão nunca passa pelo
+// nosso servidor) e efetua a cobrança de fato na API do Mercado Pago.
+async function chargeCard({ orderNumber, amount, token, paymentMethodId, installments, issuerId, payerEmail, docType, docNumber }) {
+  const payment = new Payment(getClient());
+  const body = {
+    transaction_amount: Number(amount),
+    token,
+    description: `Pedido ${orderNumber} — NovaCell`,
+    installments: Number(installments) || 1,
+    payment_method_id: paymentMethodId,
+    external_reference: orderNumber,
+    payer: { email: payerEmail }
+  };
+  if (issuerId) body.issuer_id = issuerId;
+  if (docType && docNumber) {
+    body.payer.identification = { type: docType, number: docNumber };
+  }
+
+  return payment.create({ body, requestOptions: { idempotencyKey: `${orderNumber}-card` } });
+}
+
 // status do pagamento no Mercado Pago -> status do pedido na loja
 function mapPaymentStatusToOrderStatus(paymentStatus) {
   switch (paymentStatus) {
@@ -95,9 +127,12 @@ function verifyWebhookSignature(req, dataId) {
 
 module.exports = {
   isConfigured,
+  isCardPaymentConfigured,
+  getPublicKey,
   isTestToken,
   createPreference,
   getPayment,
+  chargeCard,
   mapPaymentStatusToOrderStatus,
   verifyWebhookSignature
 };
