@@ -1,5 +1,8 @@
 /* ============ RESET & VARIABLES ============ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Sem isso, o atributo "hidden" nativo perde para "img { display: block }" logo abaixo
+   (regra de autor sempre vence a regra padrão do navegador, mesmo com menos especificidade). */
+[hidden] { display: none !important; }
 
 :root {
   --bg: #f7f8fa;
@@ -121,7 +124,11 @@ img { max-width: 100%; display: block; }
   display: flex; align-items: center; gap: 20px;
 }
 .logo { display: flex; align-items: center; gap: 8px; font-family: 'Poppins',sans-serif; font-size: 1.25rem; font-weight: 700; flex-shrink: 0; }
-.logo-mark { font-size: 1.4rem; }
+.logo-mark { display: inline-flex; color: var(--ink); }
+.logo-mark svg { display: block; width: 22px; height: 22px; }
+.logo-mark .logo-bite { fill: var(--bg-alt); }
+.footer-logo .logo-mark { color: #fff; }
+.footer-logo .logo-mark .logo-bite { fill: var(--dark-bg); }
 .logo-text strong { color: var(--primary); }
 
 .main-nav { display: flex; gap: 26px; flex: 1; }
@@ -559,6 +566,12 @@ img { max-width: 100%; display: block; }
 .pdp-photo-wrap img { width: 100%; height: 100%; object-fit: contain; }
 .pdp-discount-badge { position: absolute; top: 18px; left: 18px; z-index: 2; }
 .pdp-discount-badge:empty { display: none; }
+.pdp-presale-visual { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; width: 100%; height: 100%; }
+.pdp-presale-visual .phone-mock { width: 44%; max-width: 230px; aspect-ratio: 230 / 470; height: auto; }
+.pdp-presale-visual-tag {
+  background: rgba(124,77,255,.12); color: var(--primary); font-weight: 700; font-size: .85rem;
+  padding: 7px 16px; border-radius: 100px;
+}
 
 .pdp-info h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 8px; font-family: 'Poppins',sans-serif; }
 .pdp-tagline { color: var(--ink-soft); font-size: 1.02rem; margin-bottom: 24px; }
@@ -586,6 +599,8 @@ img { max-width: 100%; display: block; }
   .pdp { grid-template-columns: 1fr; }
   .pdp-gallery { grid-row: auto; }
   .pdp-photo-wrap { aspect-ratio: 16 / 10; }
+  .pdp-photo-wrap:has(#pdpPresaleVisual:not([hidden])) { aspect-ratio: 4 / 5; }
+  .pdp-presale-visual .phone-mock { width: 34%; }
 }
 
 @media (max-width: 860px) {

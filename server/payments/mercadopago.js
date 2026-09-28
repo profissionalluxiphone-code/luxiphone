@@ -40,7 +40,7 @@ async function createPreference(order, baseUrl) {
   const result = await preference.create({
     body: {
       items: order.items.map((item) => ({
-        title: `${item.name} — ${item.variant}`.slice(0, 256),
+        title: `${item.name} (${item.variant})`.slice(0, 256),
         quantity: item.qty,
         unit_price: Number(item.unitPrice),
         currency_id: 'BRL'
@@ -54,7 +54,7 @@ async function createPreference(order, baseUrl) {
       },
       auto_return: 'approved',
       notification_url: `${baseUrl}/api/payments/webhook`,
-      statement_descriptor: 'NOVACELL'
+      statement_descriptor: 'LUXIPHONES'
     }
   });
 
@@ -77,7 +77,7 @@ async function chargeCard({ orderNumber, amount, token, paymentMethodId, install
   const body = {
     transaction_amount: Number(amount),
     token,
-    description: `Pedido ${orderNumber} — NovaCell`,
+    description: `Pedido ${orderNumber} Lux iPhones`,
     installments: Number(installments) || 1,
     payment_method_id: paymentMethodId,
     external_reference: orderNumber,

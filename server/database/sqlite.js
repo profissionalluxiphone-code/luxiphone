@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { DatabaseSync } = require('node:sqlite');
 
-const DB_PATH = process.env.SQLITE_PATH || path.join(__dirname, '..', 'data', 'novacell.sqlite');
+const DB_PATH = process.env.SQLITE_PATH || path.join(__dirname, '..', 'data', 'luxiphones.sqlite');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 const db = new DatabaseSync(DB_PATH);

@@ -5,7 +5,7 @@ const mercadopago = require('./payments/mercadopago');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'novacell-admin';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'luxiphones-admin';
 
 const ROOT_DIR = path.join(__dirname, '..');
 
@@ -262,7 +262,7 @@ app.use((err, req, res, next) => {
 
 db.ready.then(() => {
   app.listen(PORT, () => {
-    console.log(`NovaCell rodando em http://localhost:${PORT} (banco: ${db.backend})`);
+    console.log(`Lux iPhones rodando em http://localhost:${PORT} (banco: ${db.backend})`);
     console.log(`Painel admin em http://localhost:${PORT}/admin.html`);
   });
 });

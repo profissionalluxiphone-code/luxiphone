@@ -332,7 +332,7 @@ if (track && carouselPrevBtn && carouselNextBtn) {
 
 // ================= CART =================
 let cart = [];
-try { cart = JSON.parse(localStorage.getItem('novacell_cart')) || []; } catch (e) { cart = []; }
+try { cart = JSON.parse(localStorage.getItem('luxiphones_cart')) || []; } catch (e) { cart = []; }
 
 const cartItemsEl = document.getElementById('cartItems');
 const cartEmptyMsg = document.getElementById('cartEmptyMsg');
@@ -341,7 +341,7 @@ const cartCountEl = document.getElementById('cartCount');
 const modalTotalEl = document.getElementById('modalTotal');
 
 function saveCart() {
-  try { localStorage.setItem('novacell_cart', JSON.stringify(cart)); } catch (e) {}
+  try { localStorage.setItem('luxiphones_cart', JSON.stringify(cart)); } catch (e) {}
 }
 
 function addToCart(item) {
@@ -419,7 +419,7 @@ let PAYMENT_CONFIG = { embeddedCard: false, publicKey: null };
 let mpInstance = null;
 let cardBrickController = null;
 
-const DEFAULT_SECURITY_NOTE = '🔒 Seus dados estão protegidos. Nenhum dado de cartão é solicitado neste site — o pagamento é confirmado com segurança pela nossa equipe.';
+const DEFAULT_SECURITY_NOTE = '🔒 Seus dados estão protegidos. Nenhum dado de cartão é solicitado neste site: o pagamento é confirmado com segurança pela nossa equipe.';
 const CARD_SECURITY_NOTE = '🔒 Pagamento processado com segurança pelo Mercado Pago. O número do seu cartão é criptografado no navegador e nunca chega aos nossos servidores.';
 
 async function loadPaymentConfig() {
@@ -589,7 +589,7 @@ const SUCCESS_VARIANTS = {
   success: {
     icon: '✅',
     title: 'Pagamento aprovado!',
-    message: 'Recebemos a confirmação do Mercado Pago. Seu pedido já entrou na fila de separação — em breve você recebe as novidades pelo WhatsApp.'
+    message: 'Recebemos a confirmação do Mercado Pago. Seu pedido já entrou na fila de separação. Em breve você recebe as novidades pelo WhatsApp.'
   },
   pending: {
     icon: '⏳',
@@ -768,7 +768,7 @@ const whatsappFloatBtn = document.getElementById('whatsappFloat');
 if (whatsappFloatBtn) {
   whatsappFloatBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    showToast('💬', 'Atendimento NovaCell', 'Em um site real, este botão abriria o WhatsApp da loja.');
+    showToast('💬', 'Atendimento Lux iPhones', 'Em um site real, este botão abriria o WhatsApp da loja.');
   });
 }
 

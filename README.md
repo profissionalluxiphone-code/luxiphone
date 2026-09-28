@@ -1,4 +1,4 @@
-# NovaCell Store — Black Friday
+# Lux iPhones Store — Black Friday
 
 Loja de iPhones (novos e recondicionados) com carrinho, checkout, painel admin e banco de dados. Preços especiais de Black Friday com contagem regressiva.
 
@@ -9,9 +9,9 @@ npm install
 npm start
 ```
 
-Abra `http://localhost:3000`. O painel admin fica em `http://localhost:3000/admin.html` (token padrão: `novacell-admin`, configurável via variável `ADMIN_TOKEN`).
+Abra `http://localhost:3000`. O painel admin fica em `http://localhost:3000/admin.html` (token padrão: `luxiphones-admin`, configurável via variável `ADMIN_TOKEN`).
 
-Em desenvolvimento, o servidor usa automaticamente um banco **SQLite local** (arquivo `server/data/novacell.sqlite`, criado na primeira execução). Não precisa instalar nada — é o módulo nativo `node:sqlite` do próprio Node.js.
+Em desenvolvimento, o servidor usa automaticamente um banco **SQLite local** (arquivo `server/data/luxiphones.sqlite`, criado na primeira execução). Não precisa instalar nada — é o módulo nativo `node:sqlite` do próprio Node.js.
 
 ## Colocando no ar (Render)
 
@@ -21,7 +21,7 @@ O projeto já vem com um `render.yaml` pronto que cria **o site e o banco Postgr
    ```bash
    git init
    git add .
-   git commit -m "Loja NovaCell — Black Friday"
+   git commit -m "Loja Lux iPhones — Black Friday"
    git branch -M main
    git remote add origin <url-do-seu-repositorio>
    git push -u origin main
@@ -29,11 +29,11 @@ O projeto já vem com um `render.yaml` pronto que cria **o site e o banco Postgr
 2. Acesse [render.com](https://render.com) e crie uma conta gratuita (dá pra entrar direto com o GitHub).
 3. No painel do Render, clique em **New +** → **Blueprint**.
 4. Selecione o repositório que você acabou de criar. O Render vai ler o `render.yaml` automaticamente e mostrar 2 recursos a criar:
-   - `novacell-store` (o site, plano Free)
-   - `novacell-db` (o banco PostgreSQL, plano Free)
-5. Clique em **Apply**. Em alguns minutos o site estará no ar em uma URL como `https://novacell-store.onrender.com`.
+   - `lux-iphones-store` (o site, plano Free)
+   - `lux-iphones-db` (o banco PostgreSQL, plano Free)
+5. Clique em **Apply**. Em alguns minutos o site estará no ar em uma URL como `https://lux-iphones-store.onrender.com`.
 6. O banco é criado e conectado automaticamente (variável `DATABASE_URL`) e o catálogo é populado sozinho na primeira execução.
-7. Um `ADMIN_TOKEN` aleatório e seguro também é gerado automaticamente — para descobrir qual foi gerado, vá em **novacell-store** → aba **Environment** no painel do Render.
+7. Um `ADMIN_TOKEN` aleatório e seguro também é gerado automaticamente — para descobrir qual foi gerado, vá em **lux-iphones-store** → aba **Environment** no painel do Render.
 
 **Importante sobre o banco gratuito do Render:** o plano Free do PostgreSQL expira depois de 90 dias (o Render avisa por e-mail antes). Quando isso acontecer, basta criar um novo banco gratuito (ou migrar para o plano pago, ~R$35/mês) para manter os pedidos e o estoque sem interrupção.
 
@@ -53,7 +53,7 @@ O checkout tem três formas de operar, dependendo do que estiver configurado:
    - **Access Token** → variável `MP_ACCESS_TOKEN` (secreta, só no servidor).
    - **Public Key** → variável `MP_PUBLIC_KEY` (pública, ativa o formulário de cartão embutido).
    - Local: no seu `.env` (crie a partir do `.env.example`).
-   - Render: aba **Environment** do serviço `novacell-store`.
+   - Render: aba **Environment** do serviço `lux-iphones-store`.
    - Tokens de teste começam com `TEST-` — o site detecta isso sozinho e usa o checkout de sandbox (simulação) automaticamente.
 4. (Recomendado) Configure o **webhook** no painel do Mercado Pago (**Sua aplicação → Webhooks**) apontando para `https://<seu-site>/api/payments/webhook`, evento **Pagamentos**. Copie a "Assinatura secreta" gerada e coloque em `MP_WEBHOOK_SECRET` — sem isso, o servidor ainda funciona, mas não consegue verificar se a notificação realmente veio do Mercado Pago. O webhook é o principal mecanismo de confirmação para Pix e boleto; para cartão, a confirmação já acontece na hora, mas o webhook serve como reforço (ex.: estorno posterior).
 

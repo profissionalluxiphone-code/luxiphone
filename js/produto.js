@@ -41,7 +41,7 @@ const PRODUCT_CONTENT = {
   'iphone-14': {
     image: 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-iPhone-14-Plus-2up-midnight-220907_inline.jpg.large.jpg',
     tagline: 'Mais segurança embarcada: Detecção de Acidentes e SOS via satélite.',
-    description: 'Além da câmera principal renovada com melhor captação de luz, o iPhone 14 chegou com recursos de segurança inéditos — Detecção de Acidentes e mensagens de emergência via satélite mesmo sem sinal de operadora.',
+    description: 'Além da câmera principal renovada com melhor captação de luz, o iPhone 14 chegou com recursos de segurança inéditos: Detecção de Acidentes e mensagens de emergência via satélite mesmo sem sinal de operadora.',
     specs: [
       { label: 'Tela', value: '6.1" Super Retina XDR OLED' },
       { label: 'Chip', value: 'A15 Bionic (GPU 5 núcleos)' },
@@ -52,7 +52,7 @@ const PRODUCT_CONTENT = {
   },
   'iphone-15': {
     image: 'https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-design-230912_big.jpg.large.jpg',
-    tagline: 'Dynamic Island, câmera de 48MP e USB-C — o salto que todo mundo queria.',
+    tagline: 'Dynamic Island, câmera de 48MP e USB-C: o salto que todo mundo queria.',
     description: 'O iPhone 15 trouxe a Dynamic Island para a linha padrão, uma câmera principal de 48MP com muito mais detalhe e a troca do conector para USB-C, o mesmo padrão de carregadores de notebooks e outros dispositivos.',
     specs: [
       { label: 'Tela', value: '6.1" Super Retina XDR com Dynamic Island' },
@@ -87,8 +87,7 @@ const PRODUCT_CONTENT = {
     ]
   },
   'iphone-18': {
-    image: 'https://www.apple.com/newsroom/images/2025/09/apple-debuts-iphone-17/article/Apple-iPhone-17-hero-250909_inline.jpg.large.jpg',
-    tagline: 'Ainda não foi lançado — garanta o seu em pré-venda com prioridade de entrega.',
+    tagline: 'Ainda não foi lançado. Garanta o seu em pré-venda com prioridade de entrega.',
     description: 'O iPhone 18 ainda não chegou às lojas, mas você já pode reservar o seu com um pequeno depósito. Preço protegido: se baixar antes do lançamento, você paga o menor valor. Cancelamento gratuito a qualquer momento.',
     specs: [
       { label: 'Lançamento', value: 'Previsto para outubro de 2026' },
@@ -144,21 +143,26 @@ async function initProductPage() {
   }
 
   const content = PRODUCT_CONTENT[id];
-  document.title = `${product.name} — NovaCell`;
+  document.title = `${product.name} - Lux iPhones`;
   document.getElementById('pdpBreadcrumbName').textContent = product.name;
-  document.getElementById('pdpImage').src = content.image;
-  document.getElementById('pdpImage').alt = product.name;
   document.getElementById('pdpName').textContent = product.name;
   document.getElementById('pdpTagline').textContent = content.tagline;
   document.getElementById('pdpDescription').textContent = content.description;
   document.getElementById('pdpSpecs').innerHTML = specsTableHTML(content.specs);
 
   if (product.presale) {
+    // O modelo ainda não foi lançado: sem foto real, mostra o mockup em CSS
+    // (o mesmo usado na seção de pré-venda da home) em vez de uma imagem que não é ele de verdade.
+    document.getElementById('pdpImage').hidden = true;
+    document.getElementById('pdpPresaleVisual').hidden = false;
     document.getElementById('pdpBuyBox').hidden = true;
     document.getElementById('pdpPresaleBox').hidden = false;
     document.getElementById('pdpPresalePrice').textContent = formatBRL(product.basePrice);
     return;
   }
+
+  document.getElementById('pdpImage').src = content.image;
+  document.getElementById('pdpImage').alt = product.name;
 
   document.getElementById('pdpBuyBox').hidden = false;
   document.getElementById('pdpPresaleBox').hidden = true;
