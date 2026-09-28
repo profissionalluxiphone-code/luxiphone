@@ -29,7 +29,7 @@ const PRODUCT_CONTENT = {
   'iphone-13': {
     image: 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg',
     tagline: 'O queridinho do público: equilíbrio perfeito entre preço, bateria e câmera.',
-    description: 'Com sensores maiores, modo Cinematic para vídeos com foco automático e até 2h30 a mais de bateria que o modelo anterior, o iPhone 13 é hoje o modelo mais vendido do nosso catálogo — e não é à toa.',
+    description: 'Com sensores maiores, modo Cinematic para vídeos com foco automático e até 2h30 a mais de bateria que o modelo anterior, o iPhone 13 é hoje o modelo mais vendido do nosso catálogo, e não é à toa.',
     specs: [
       { label: 'Tela', value: '6.1" Super Retina XDR OLED' },
       { label: 'Chip', value: 'A15 Bionic' },
