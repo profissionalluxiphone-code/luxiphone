@@ -522,6 +522,15 @@ img.cart-line-thumb { background: linear-gradient(160deg, #f1f0f6, #e2e0ee); obj
 .modal-security { font-size: .76rem; color: var(--ink-soft); text-align: center; }
 #cardBrickWrap { margin: 14px 0; }
 .card-brick-loading { font-size: .82rem; color: var(--ink-soft); text-align: center; padding: 10px 0; }
+.login-gate { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 10px 0 20px; text-align: center; }
+.login-gate p { color: var(--ink-soft); font-size: .88rem; margin: 0; }
+.login-gate-error { color: var(--danger); font-size: .82rem; }
+.logged-in-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 10px 14px; margin-bottom: 16px; font-size: .85rem; font-weight: 600;
+}
+.logged-in-bar button { font-size: .78rem; font-weight: 700; color: var(--danger); }
 .checkout-success { text-align: center; padding: 20px 0; }
 .success-icon { font-size: 3rem; display: block; margin-bottom: 14px; }
 .checkout-success h3 { margin-bottom: 10px; }

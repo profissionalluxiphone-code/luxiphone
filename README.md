@@ -37,6 +37,24 @@ O projeto já vem com um `render.yaml` pronto que cria **o site e o banco Postgr
 
 **Importante sobre o banco gratuito do Render:** o plano Free do PostgreSQL expira depois de 90 dias (o Render avisa por e-mail antes). Quando isso acontecer, basta criar um novo banco gratuito (ou migrar para o plano pago, ~R$35/mês) para manter os pedidos e o estoque sem interrupção.
 
+## Login com Google (obrigatório para comprar)
+
+Desde que essa funcionalidade foi adicionada, o cliente precisa entrar com a conta Google antes de finalizar o pedido (o formulário de checkout só aparece depois do login). Os dados do cliente (nome e e-mail) ficam guardados na tabela **`users`** do nosso próprio banco — nada fica em um serviço de terceiros, e o painel `/admin.html` lista todos os cadastros.
+
+### Como ativar
+
+1. Acesse [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials) (grátis, não pede cartão) e crie um projeto, se ainda não tiver um.
+2. Clique em **Criar credenciais** → **ID do cliente OAuth** → tipo **Aplicativo da Web**.
+3. Em **Origens JavaScript autorizadas**, adicione as URLs do site:
+   - `http://localhost:3000` (para testar local)
+   - `https://<seu-site>.onrender.com` (ou seu domínio próprio, em produção)
+4. Copie o **ID do cliente** gerado (algo como `123456789-abc.apps.googleusercontent.com`) e coloque na variável `GOOGLE_CLIENT_ID`:
+   - Local: no seu `.env`.
+   - Render: aba **Environment** do serviço `lux-iphones-store`.
+5. Não precisa configurar mais nada — o `SESSION_SECRET` (usado para assinar o cookie de login) já é gerado automaticamente pelo `render.yaml` no Render; em local, o servidor usa um valor padrão de desenvolvimento.
+
+Sem o `GOOGLE_CLIENT_ID` configurado, o botão de login não aparece e ninguém consegue finalizar pedidos — então essa variável é obrigatória em produção.
+
 ## Gateway de pagamento (Mercado Pago)
 
 O checkout tem três formas de operar, dependendo do que estiver configurado:
@@ -66,7 +84,8 @@ Com um token `TEST-...`, use os [cartões de teste do Mercado Pago](https://www.
 ## Estrutura do banco de dados
 
 - **`products`** — catálogo, preços (Black Friday e cheio), estoque por condição (novo/recondicionado).
-- **`orders`** — pedidos recebidos pelo checkout, incluindo status de pagamento (`payment_status`) e o ID do pagamento no Mercado Pago (`payment_id`), quando aplicável.
+- **`orders`** — pedidos recebidos pelo checkout, incluindo status de pagamento (`payment_status`), o ID do pagamento no Mercado Pago (`payment_id`) e o cliente que fez o pedido (`user_id`), quando aplicável.
+- **`users`** — clientes cadastrados via login com Google (nome, e-mail, data de cadastro e último login). Listados no painel `/admin.html`.
 - **`counters`** — contador sequencial dos números de pedido (`NC100001`, `NC100002`, ...).
 
 O código de acesso ao banco fica em `server/database/` (`postgres.js` para produção, `sqlite.js` para desenvolvimento local, escolhidos automaticamente conforme a variável `DATABASE_URL`).

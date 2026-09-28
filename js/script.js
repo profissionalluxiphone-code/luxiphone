@@ -542,6 +542,7 @@ async function submitCardPayment(cardFormData) {
   });
   const orderData = await orderResp.json();
   if (!orderResp.ok) {
+    if (orderResp.status === 401) { currentUser = null; updateCheckoutAuthUI(); }
     showToast('⚠️', 'Não foi possível criar o pedido', orderData.error || 'Tente novamente em instantes.');
     throw new Error(orderData.error || 'Falha ao criar pedido.');
   }
@@ -573,6 +574,108 @@ async function submitCardPayment(cardFormData) {
   loadLiveStock();
 }
 
+// ================= AUTH: login com Google (exigido para finalizar compra) =================
+let currentUser = null;
+let googleClientId = null;
+let googleButtonRendered = false;
+
+async function loadAuthConfig() {
+  if (location.protocol === 'file:') return;
+  try {
+    const resp = await fetch('/api/auth/config');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    googleClientId = data.googleClientId;
+  } catch (err) {
+    // Backend indisponível — segue sem login com Google configurado.
+  }
+}
+
+async function loadCurrentUser() {
+  if (location.protocol === 'file:') { updateCheckoutAuthUI(); return; }
+  try {
+    const resp = await fetch('/api/auth/me');
+    currentUser = resp.ok ? (await resp.json()).user : null;
+  } catch (err) {
+    currentUser = null;
+  }
+  updateCheckoutAuthUI();
+}
+
+function initGoogleSignIn() {
+  if (googleButtonRendered || !googleClientId || !window.google || !window.google.accounts) return;
+  const btnEl = document.getElementById('googleSignInBtn');
+  if (!btnEl) return;
+  google.accounts.id.initialize({ client_id: googleClientId, callback: handleGoogleCredential });
+  google.accounts.id.renderButton(btnEl, { theme: 'outline', size: 'large', width: 260, locale: 'pt-BR' });
+  googleButtonRendered = true;
+}
+
+async function handleGoogleCredential(response) {
+  const errEl = document.getElementById('loginGateError');
+  try {
+    const resp = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (errEl) { errEl.textContent = data.error || 'Não foi possível entrar com o Google.'; errEl.hidden = false; }
+      return;
+    }
+    if (errEl) errEl.hidden = true;
+    currentUser = data.user;
+    updateCheckoutAuthUI();
+  } catch (err) {
+    if (errEl) { errEl.textContent = 'Erro ao conectar. Tente novamente.'; errEl.hidden = false; }
+  }
+}
+
+function updateCheckoutAuthUI() {
+  const loginGate = document.getElementById('loginGate');
+  const loggedInBar = document.getElementById('loggedInBar');
+  const form = document.getElementById('checkoutForm');
+  if (!loginGate || !loggedInBar || !form) return;
+
+  if (location.protocol === 'file:') {
+    // Sem backend pra autenticar (preview local do arquivo) — não bloqueia o formulário de demonstração.
+    loginGate.hidden = true;
+    loggedInBar.hidden = true;
+    form.hidden = false;
+    return;
+  }
+
+  if (currentUser) {
+    loginGate.hidden = true;
+    loggedInBar.hidden = false;
+    form.hidden = false;
+    const label = document.getElementById('loggedInLabel');
+    if (label) {
+      label.textContent = currentUser.name;
+    }
+    const nameInput = form.querySelector('input[type="text"]');
+    const emailInput = document.getElementById('checkoutEmail');
+    if (nameInput && !nameInput.value) nameInput.value = currentUser.name || '';
+    if (emailInput && !emailInput.value) emailInput.value = currentUser.email || '';
+  } else {
+    loginGate.hidden = false;
+    loggedInBar.hidden = true;
+    form.hidden = true;
+    initGoogleSignIn();
+  }
+}
+
+const logoutCheckoutBtn = document.getElementById('logoutCheckoutBtn');
+if (logoutCheckoutBtn) {
+  logoutCheckoutBtn.addEventListener('click', () => {
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+      currentUser = null;
+      updateCheckoutAuthUI();
+    });
+  });
+}
+
 // ================= CHECKOUT MODAL =================
 const checkoutOverlay = document.getElementById('checkoutOverlay');
 const checkoutStep1 = document.getElementById('checkoutStep1');
@@ -586,6 +689,7 @@ function openCheckout() {
   checkoutOverlay.classList.add('active');
   checkoutStep1.hidden = false;
   checkoutStep2.hidden = true;
+  updateCheckoutAuthUI();
   handlePaymentMethodChange();
 }
 function closeCheckout() {
@@ -680,6 +784,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
     const data = await resp.json();
 
     if (!resp.ok) {
+      if (resp.status === 401) { currentUser = null; updateCheckoutAuthUI(); }
       showToast('⚠️', 'Não foi possível concluir', data.error || 'Tente novamente em instantes.');
       loadLiveStock();
       submitBtn.disabled = false;
@@ -807,4 +912,5 @@ async function handlePaymentReturn() {
 // ================= INIT: pull live prices/stock from the backend, if running =================
 loadLiveStock();
 loadPaymentConfig();
+loadAuthConfig().then(loadCurrentUser);
 handlePaymentReturn();

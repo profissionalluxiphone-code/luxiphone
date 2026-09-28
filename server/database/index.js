@@ -25,5 +25,8 @@ module.exports = {
   createOrder: (...args) => withReady(() => impl.createOrder(...args)),
   updateOrderStatus: (...args) => withReady(() => impl.updateOrderStatus(...args)),
   updateOrderPayment: (...args) => withReady(() => impl.updateOrderPayment(...args)),
-  nextOrderNumber: (...args) => withReady(() => impl.nextOrderNumber(...args))
+  nextOrderNumber: (...args) => withReady(() => impl.nextOrderNumber(...args)),
+  getUserById: (...args) => withReady(() => impl.getUserById(...args)),
+  upsertGoogleUser: (...args) => withReady(() => impl.upsertGoogleUser(...args)),
+  getUsers: (...args) => withReady(() => impl.getUsers(...args))
 };

@@ -198,7 +198,19 @@
     <div id="checkoutStep1">
       <h3>Finalizar pedido</h3>
       <p class="modal-sub">Preencha seus dados para nossa equipe confirmar o pagamento e a entrega com você.</p>
-      <form id="checkoutForm">
+
+      <div class="login-gate" id="loginGate">
+        <p>Entre com sua conta Google para continuar a compra.</p>
+        <div id="googleSignInBtn"></div>
+        <p class="login-gate-error" id="loginGateError" hidden></p>
+      </div>
+
+      <div class="logged-in-bar" id="loggedInBar" hidden>
+        <span id="loggedInLabel"></span>
+        <button type="button" class="logout-link" id="logoutCheckoutBtn">Sair</button>
+      </div>
+
+      <form id="checkoutForm" hidden>
         <label>Nome completo<input type="text" required placeholder="Seu nome"></label>
         <label>WhatsApp<input type="tel" required placeholder="(11) 90000-0000"></label>
         <label>E-mail<input type="email" required placeholder="voce@email.com" id="checkoutEmail"></label>
@@ -235,6 +247,7 @@
 
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="js/script.js"></script>
 <script src="js/produto.js"></script>
 </body>

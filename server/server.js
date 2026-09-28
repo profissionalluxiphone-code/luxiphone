@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const db = require('./database');
 const mercadopago = require('./payments/mercadopago');
+const auth = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +20,7 @@ function getBaseUrl(req) {
 }
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(ROOT_DIR));
 
 function asyncHandler(fn) {
@@ -31,6 +34,15 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Exige login (Google) para seguir com o pedido — não valida token de admin.
+async function requireUser(req, res, next) {
+  const userId = auth.getSessionUserId(req);
+  const user = userId ? await db.getUserById(userId) : null;
+  if (!user) return res.status(401).json({ error: 'Faça login com sua conta Google para finalizar o pedido.' });
+  req.user = user;
+  next();
+}
+
 function conditionLabel(cond) {
   return cond === 'recon' ? 'Recondicionado' : 'Novo';
 }
@@ -40,8 +52,42 @@ app.get('/api/products', asyncHandler(async (req, res) => {
   res.json(await db.getProducts());
 }));
 
-// ---------- PUBLIC: CREATE ORDER ----------
-app.post('/api/orders', asyncHandler(async (req, res) => {
+// ---------- AUTH: LOGIN COM GOOGLE ----------
+app.get('/api/auth/config', (req, res) => {
+  res.json({ googleClientId: auth.isGoogleLoginConfigured() ? auth.GOOGLE_CLIENT_ID : null });
+});
+
+app.post('/api/auth/google', asyncHandler(async (req, res) => {
+  const { credential } = req.body || {};
+  if (!credential) return res.status(400).json({ error: 'Credencial do Google ausente.' });
+
+  let profile;
+  try {
+    profile = await auth.verifyGoogleCredential(credential);
+  } catch (err) {
+    console.error('Falha ao verificar credencial do Google:', err.message);
+    return res.status(401).json({ error: 'Não foi possível validar o login do Google.' });
+  }
+
+  const user = await db.upsertGoogleUser(profile);
+  auth.setSessionCookie(res, user.id, req.protocol === 'https' || process.env.NODE_ENV === 'production');
+  res.json({ user });
+}));
+
+app.get('/api/auth/me', asyncHandler(async (req, res) => {
+  const userId = auth.getSessionUserId(req);
+  const user = userId ? await db.getUserById(userId) : null;
+  if (!user) return res.status(401).json({ error: 'Não autenticado.' });
+  res.json({ user });
+}));
+
+app.post('/api/auth/logout', (req, res) => {
+  auth.clearSessionCookie(res);
+  res.json({ ok: true });
+});
+
+// ---------- PUBLIC: CREATE ORDER (exige login com Google) ----------
+app.post('/api/orders', requireUser, asyncHandler(async (req, res) => {
   const { customerName, whatsapp, paymentMethod, items } = req.body || {};
 
   if (!customerName || !whatsapp || !Array.isArray(items) || items.length === 0) {
@@ -116,7 +162,8 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
     total,
     status: usePaymentGateway ? 'aguardando pagamento' : 'recebido',
     createdAt: new Date().toISOString(),
-    paymentStatus: usePaymentGateway ? 'pendente' : 'manual'
+    paymentStatus: usePaymentGateway ? 'pendente' : 'manual',
+    userId: req.user.id
   };
 
   const saved = await db.createOrder(order);
@@ -207,18 +254,44 @@ app.patch('/api/admin/orders/:orderNumber/status', requireAdmin, asyncHandler(as
   res.json(updated);
 }));
 
-// ---------- ADMIN: STOCK ----------
-app.patch('/api/admin/products/:id/stock', requireAdmin, asyncHandler(async (req, res) => {
-  const { condition, stock } = req.body || {};
+// ---------- ADMIN: PRODUCTS (preço, preço cheio, estoque, disponibilidade, pré-venda) ----------
+app.patch('/api/admin/products/:id', requireAdmin, asyncHandler(async (req, res) => {
   const products = await db.getProducts();
   const product = products.find((p) => p.id === req.params.id);
-
   if (!product) return res.status(404).json({ error: 'Produto não encontrado.' });
-  if (!product[condition]) return res.status(400).json({ error: 'Condição inválida.' });
 
-  product[condition].stock = Math.max(0, parseInt(stock, 10) || 0);
+  const body = req.body || {};
+
+  if (product.presale) {
+    if (body.basePrice != null) product.basePrice = Math.max(0, Number(body.basePrice) || 0);
+    if (body.depositPrice != null) product.depositPrice = Math.max(0, Number(body.depositPrice) || 0);
+    if (body.reservationLimit != null) product.reservationLimit = Math.max(0, parseInt(body.reservationLimit, 10) || 0);
+  } else {
+    for (const cond of ['novo', 'recon']) {
+      const data = body[cond];
+      if (!data || !product[cond]) continue;
+      if (data.price != null) product[cond].price = Math.max(0, Number(data.price) || 0);
+      if (data.de != null) product[cond].de = Math.max(0, Number(data.de) || 0);
+      if (data.stock != null) product[cond].stock = Math.max(0, parseInt(data.stock, 10) || 0);
+      if (data.available != null) product[cond].available = !!data.available;
+    }
+  }
+
   await db.saveProducts(products);
   res.json(product);
+}));
+
+// ---------- ADMIN: USERS (clientes cadastrados via Google) ----------
+app.get('/api/admin/users', requireAdmin, asyncHandler(async (req, res) => {
+  res.json(await db.getUsers());
+}));
+
+// ---------- ADMIN: EXPORT (backup completo dos dados em JSON) ----------
+app.get('/api/admin/export', requireAdmin, asyncHandler(async (req, res) => {
+  const [products, orders, users] = await Promise.all([db.getProducts(), db.getOrders(), db.getUsers()]);
+  const filename = `luxiphones-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.json({ exportedAt: new Date().toISOString(), products, orders, users });
 }));
 
 // ---------- PAYMENTS: MERCADO PAGO WEBHOOK ----------

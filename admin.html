@@ -55,8 +55,16 @@
   </div>
 
   <div class="admin-card">
-    <h2>📱 Estoque</h2>
-    <div id="stockTableWrap"><p class="empty-msg">Carregando estoque...</p></div>
+    <h2>👤 Clientes cadastrados (login Google)</h2>
+    <div id="usersTableWrap"><p class="empty-msg">Carregando clientes...</p></div>
+  </div>
+
+  <div class="admin-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+      <h2 style="margin-bottom:0;">📱 Catálogo (preços, estoque e disponibilidade)</h2>
+      <button class="save-btn" id="exportBtn" style="margin-left:0;">⬇️ Exportar todos os dados (JSON)</button>
+    </div>
+    <div id="stockTableWrap"><p class="empty-msg">Carregando catálogo...</p></div>
   </div>
 </div>
 
@@ -89,6 +97,7 @@ async function tryEnter(token) {
     gateView.hidden = true;
     adminView.hidden = false;
     loadOrders();
+    loadUsers();
     loadStock();
     return true;
   }
@@ -168,50 +177,126 @@ async function loadOrders() {
   });
 }
 
+async function loadUsers() {
+  const resp = await fetch('/api/admin/users', { headers: authHeaders() });
+  const users = await resp.json();
+  const wrap = document.getElementById('usersTableWrap');
+
+  if (!Array.isArray(users) || !users.length) {
+    wrap.innerHTML = '<p class="empty-msg">Nenhum cliente cadastrado ainda.</p>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Cliente</th><th>E-mail</th><th>Cadastrado em</th><th>Último login</th></tr></thead>
+      <tbody>
+        ${users.map(u => `
+          <tr>
+            <td><strong>${u.name || '-'}</strong></td>
+            <td>${u.email}</td>
+            <td class="items-list">${formatDate(u.createdAt)}</td>
+            <td class="items-list">${formatDate(u.lastLoginAt)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+const CONDITION_LABELS = { novo: 'Novo', recon: 'Recondicionado' };
+
 async function loadStock() {
   const resp = await fetch('/api/products');
   const products = await resp.json();
   const wrap = document.getElementById('stockTableWrap');
 
-  const rows = products.filter(p => !p.presale).map(p => `
-    <tr>
-      <td><strong>${p.name}</strong></td>
-      <td>Novo<br>
-        <input type="number" min="0" class="stock-input" value="${p.novo.stock}" data-id="${p.id}" data-cond="novo">
-        <button class="save-btn" data-id="${p.id}" data-cond="novo">Salvar</button>
-      </td>
-      <td>${p.recon.available ? `Recondicionado<br>
-        <input type="number" min="0" class="stock-input" value="${p.recon.stock}" data-id="${p.id}" data-cond="recon">
-        <button class="save-btn" data-id="${p.id}" data-cond="recon">Salvar</button>` : '<span class="items-list">Não disponível</span>'}
-      </td>
-    </tr>
-  `).join('');
+  const rows = [];
+  products.filter(p => !p.presale).forEach(p => {
+    ['novo', 'recon'].forEach(cond => {
+      const c = p[cond];
+      if (!c) return;
+      rows.push(`
+        <tr>
+          <td><strong>${p.name}</strong><br><span class="items-list">${CONDITION_LABELS[cond]}</span></td>
+          <td><input type="number" min="0" step="1" class="stock-input" style="width:90px" value="${c.price}" data-id="${p.id}" data-cond="${cond}" data-field="price"></td>
+          <td><input type="number" min="0" step="1" class="stock-input" style="width:90px" value="${c.de}" data-id="${p.id}" data-cond="${cond}" data-field="de"></td>
+          <td><input type="number" min="0" class="stock-input" value="${c.stock}" data-id="${p.id}" data-cond="${cond}" data-field="stock"></td>
+          <td style="text-align:center;"><input type="checkbox" data-id="${p.id}" data-cond="${cond}" data-field="available" ${c.available ? 'checked' : ''}></td>
+          <td><button class="save-btn prod-save-btn" data-id="${p.id}" data-cond="${cond}">Salvar</button></td>
+        </tr>
+      `);
+    });
+  });
 
   const presale = products.find(p => p.presale);
-  const presaleRow = presale ? `
-    <p class="items-list" style="margin-top:14px;">⚡ <strong>${presale.name} (pré-venda):</strong> ${presale.reservationsCount || 0} de ${presale.reservationLimit} reservas realizadas.</p>
+  const presaleBlock = presale ? `
+    <div style="margin-top:20px; border:1px dashed var(--line); border-radius:var(--radius-sm); padding:16px;">
+      <h3 style="margin-bottom:10px;">⚡ ${presale.name} (pré-venda)</h3>
+      <p class="items-list" style="margin-bottom:12px;">${presale.reservationsCount || 0} de ${presale.reservationLimit} reservas realizadas.</p>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;">
+        <label class="items-list">Preço base<br><input type="number" min="0" class="stock-input" style="width:110px" id="presaleBasePrice" value="${presale.basePrice}"></label>
+        <label class="items-list">Depósito<br><input type="number" min="0" class="stock-input" style="width:110px" id="presaleDepositPrice" value="${presale.depositPrice}"></label>
+        <label class="items-list">Limite de reservas<br><input type="number" min="0" class="stock-input" style="width:110px" id="presaleLimit" value="${presale.reservationLimit}"></label>
+        <button class="save-btn" id="presaleSaveBtn">Salvar</button>
+      </div>
+    </div>
   ` : '';
 
   wrap.innerHTML = `
     <table>
-      <thead><tr><th>Modelo</th><th>Estoque Novo</th><th>Estoque Recondicionado</th></tr></thead>
-      <tbody>${rows}</tbody>
+      <thead><tr><th>Modelo / Condição</th><th>Preço promocional</th><th>Preço cheio (de)</th><th>Estoque</th><th>Disponível</th><th></th></tr></thead>
+      <tbody>${rows.join('')}</tbody>
     </table>
-    ${presaleRow}
+    ${presaleBlock}
   `;
 
-  wrap.querySelectorAll('.save-btn').forEach(btn => {
+  wrap.querySelectorAll('.prod-save-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const input = wrap.querySelector(`.stock-input[data-id="${btn.dataset.id}"][data-cond="${btn.dataset.cond}"]`);
-      const resp = await fetch(`/api/admin/products/${btn.dataset.id}/stock`, {
+      const { id, cond } = btn.dataset;
+      const scope = wrap.querySelectorAll(`[data-id="${id}"][data-cond="${cond}"][data-field]`);
+      const payload = {};
+      scope.forEach(el => {
+        payload[el.dataset.field] = el.type === 'checkbox' ? el.checked : el.value;
+      });
+      const resp = await fetch(`/api/admin/products/${id}`, {
         method: 'PATCH',
         headers: authHeaders(),
-        body: JSON.stringify({ condition: btn.dataset.cond, stock: input.value })
+        body: JSON.stringify({ [cond]: payload })
       });
-      if (resp.ok) showMsg('Estoque atualizado.');
+      if (resp.ok) showMsg('Produto atualizado.');
+      else showMsg('Erro ao salvar produto.');
     });
   });
+
+  document.getElementById('presaleSaveBtn')?.addEventListener('click', async () => {
+    const resp = await fetch(`/api/admin/products/${presale.id}`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        basePrice: document.getElementById('presaleBasePrice').value,
+        depositPrice: document.getElementById('presaleDepositPrice').value,
+        reservationLimit: document.getElementById('presaleLimit').value
+      })
+    });
+    if (resp.ok) { showMsg('Pré-venda atualizada.'); loadStock(); }
+    else showMsg('Erro ao salvar pré-venda.');
+  });
 }
+
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const resp = await fetch('/api/admin/export', { headers: authHeaders() });
+  if (!resp.ok) { showMsg('Erro ao exportar dados.'); return; }
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `luxiphones-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
 
 if (ADMIN_TOKEN) {
   tryEnter(ADMIN_TOKEN);

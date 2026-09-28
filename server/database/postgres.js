@@ -44,7 +44,19 @@ function mapOrderRow(row) {
     status: row.status,
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
     paymentId: row.payment_id ?? undefined,
-    paymentStatus: row.payment_status ?? 'manual'
+    paymentStatus: row.payment_status ?? 'manual',
+    userId: row.user_id ?? undefined
+  };
+}
+
+function mapUserRow(row) {
+  return {
+    id: row.id,
+    googleSub: row.google_sub,
+    email: row.email,
+    name: row.name,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    lastLoginAt: row.last_login_at instanceof Date ? row.last_login_at.toISOString() : row.last_login_at
   };
 }
 
@@ -66,6 +78,16 @@ async function init(seedData) {
     );
   `);
   await p.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      google_sub TEXT UNIQUE NOT NULL,
+      email TEXT NOT NULL,
+      name TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      last_login_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+  await p.query(`
     CREATE TABLE IF NOT EXISTS orders (
       order_number TEXT PRIMARY KEY,
       customer_name TEXT NOT NULL,
@@ -76,11 +98,13 @@ async function init(seedData) {
       status TEXT NOT NULL DEFAULT 'recebido',
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       payment_id TEXT,
-      payment_status TEXT NOT NULL DEFAULT 'manual'
+      payment_status TEXT NOT NULL DEFAULT 'manual',
+      user_id TEXT
     );
   `);
   await p.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_id TEXT');
   await p.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'manual'");
+  await p.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id TEXT');
   await p.query(`
     CREATE TABLE IF NOT EXISTS counters (
       name TEXT PRIMARY KEY,
@@ -120,8 +144,18 @@ async function getProducts() {
 async function saveProducts(products) {
   for (const item of products) {
     await getPool().query(
-      'UPDATE products SET novo = $1, recon = $2, reservations_count = $3 WHERE id = $4',
-      [item.novo ? JSON.stringify(item.novo) : null, item.recon ? JSON.stringify(item.recon) : null, item.reservationsCount ?? 0, item.id]
+      `UPDATE products
+       SET novo = $1, recon = $2, reservations_count = $3, base_price = $4, deposit_price = $5, reservation_limit = $6
+       WHERE id = $7`,
+      [
+        item.novo ? JSON.stringify(item.novo) : null,
+        item.recon ? JSON.stringify(item.recon) : null,
+        item.reservationsCount ?? 0,
+        item.basePrice ?? null,
+        item.depositPrice ?? null,
+        item.reservationLimit ?? null,
+        item.id
+      ]
     );
   }
 }
@@ -138,15 +172,44 @@ async function getOrderByNumber(orderNumber) {
 
 async function createOrder(order) {
   await getPool().query(
-    `INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    `INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     [
       order.orderNumber, order.customerName, order.whatsapp, order.paymentMethod,
       JSON.stringify(order.items), order.total, order.status, order.createdAt,
-      order.paymentStatus || 'manual'
+      order.paymentStatus || 'manual', order.userId || null
     ]
   );
   return getOrderByNumber(order.orderNumber);
+}
+
+async function getUserById(id) {
+  const { rows } = await getPool().query('SELECT * FROM users WHERE id = $1', [id]);
+  return rows[0] ? mapUserRow(rows[0]) : null;
+}
+
+async function upsertGoogleUser({ googleSub, email, name }) {
+  const { rows } = await getPool().query('SELECT * FROM users WHERE google_sub = $1', [googleSub]);
+
+  if (rows[0]) {
+    const { rows: updated } = await getPool().query(
+      `UPDATE users SET email = $1, name = $2, last_login_at = now() WHERE google_sub = $3 RETURNING *`,
+      [email, name, googleSub]
+    );
+    return mapUserRow(updated[0]);
+  }
+
+  const id = `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+  const { rows: created } = await getPool().query(
+    `INSERT INTO users (id, google_sub, email, name) VALUES ($1,$2,$3,$4) RETURNING *`,
+    [id, googleSub, email, name]
+  );
+  return mapUserRow(created[0]);
+}
+
+async function getUsers() {
+  const { rows } = await getPool().query('SELECT * FROM users ORDER BY created_at DESC');
+  return rows.map(mapUserRow);
 }
 
 async function updateOrderStatus(orderNumber, status) {
@@ -170,5 +233,6 @@ async function nextOrderNumber() {
 }
 
 module.exports = {
-  init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber
+  init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber,
+  getUserById, upsertGoogleUser, getUsers
 };

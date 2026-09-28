@@ -37,7 +37,19 @@ function mapOrderRow(row) {
     status: row.status,
     createdAt: row.created_at,
     paymentId: row.payment_id ?? undefined,
-    paymentStatus: row.payment_status ?? 'manual'
+    paymentStatus: row.payment_status ?? 'manual',
+    userId: row.user_id ?? undefined
+  };
+}
+
+function mapUserRow(row) {
+  return {
+    id: row.id,
+    googleSub: row.google_sub,
+    email: row.email,
+    name: row.name,
+    createdAt: row.created_at,
+    lastLoginAt: row.last_login_at
   };
 }
 
@@ -58,6 +70,16 @@ async function init(seedData) {
     );
   `);
   db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      google_sub TEXT UNIQUE NOT NULL,
+      email TEXT NOT NULL,
+      name TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_login_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       order_number TEXT PRIMARY KEY,
       customer_name TEXT NOT NULL,
@@ -68,7 +90,8 @@ async function init(seedData) {
       status TEXT NOT NULL DEFAULT 'recebido',
       created_at TEXT NOT NULL,
       payment_id TEXT,
-      payment_status TEXT NOT NULL DEFAULT 'manual'
+      payment_status TEXT NOT NULL DEFAULT 'manual',
+      user_id TEXT
     );
   `);
   db.exec(`
@@ -84,6 +107,9 @@ async function init(seedData) {
   }
   if (!orderCols.includes('payment_status')) {
     db.exec("ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'manual'");
+  }
+  if (!orderCols.includes('user_id')) {
+    db.exec('ALTER TABLE orders ADD COLUMN user_id TEXT');
   }
 
   const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
@@ -116,12 +142,19 @@ async function getProducts() {
 }
 
 async function saveProducts(products) {
-  const update = db.prepare('UPDATE products SET novo = ?, recon = ?, reservations_count = ? WHERE id = ?');
+  const update = db.prepare(`
+    UPDATE products
+    SET novo = ?, recon = ?, reservations_count = ?, base_price = ?, deposit_price = ?, reservation_limit = ?
+    WHERE id = ?
+  `);
   for (const p of products) {
     update.run(
       p.novo ? JSON.stringify(p.novo) : null,
       p.recon ? JSON.stringify(p.recon) : null,
       p.reservationsCount ?? 0,
+      p.basePrice ?? null,
+      p.depositPrice ?? null,
+      p.reservationLimit ?? null,
       p.id
     );
   }
@@ -139,14 +172,41 @@ async function getOrderByNumber(orderNumber) {
 
 async function createOrder(order) {
   db.prepare(`
-    INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     order.orderNumber, order.customerName, order.whatsapp, order.paymentMethod,
     JSON.stringify(order.items), order.total, order.status, order.createdAt,
-    order.paymentStatus || 'manual'
+    order.paymentStatus || 'manual', order.userId || null
   );
   return getOrderByNumber(order.orderNumber);
+}
+
+async function getUserById(id) {
+  const row = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  return row ? mapUserRow(row) : null;
+}
+
+async function upsertGoogleUser({ googleSub, email, name }) {
+  const existing = db.prepare('SELECT * FROM users WHERE google_sub = ?').get(googleSub);
+
+  if (existing) {
+    db.prepare(`
+      UPDATE users SET email = ?, name = ?, last_login_at = datetime('now') WHERE google_sub = ?
+    `).run(email, name, googleSub);
+    return getUserById(existing.id);
+  }
+
+  const id = `U${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+  db.prepare(`
+    INSERT INTO users (id, google_sub, email, name) VALUES (?, ?, ?, ?)
+  `).run(id, googleSub, email, name);
+  return getUserById(id);
+}
+
+async function getUsers() {
+  const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+  return rows.map(mapUserRow);
 }
 
 async function updateOrderStatus(orderNumber, status) {
@@ -168,5 +228,6 @@ async function nextOrderNumber() {
 }
 
 module.exports = {
-  init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber
+  init, getProducts, saveProducts, getOrders, getOrderByNumber, createOrder, updateOrderStatus, updateOrderPayment, nextOrderNumber,
+  getUserById, upsertGoogleUser, getUsers
 };
