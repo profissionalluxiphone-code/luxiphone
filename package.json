@@ -1,0 +1,18 @@
+{
+  "name": "novacell-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Loja de iPhones novos e recondicionados com painel de pedidos e estoque",
+  "main": "server/server.js",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mercadopago": "^3.6.1",
+    "pg": "^8.13.1"
+  }
+}

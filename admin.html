@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaCell — Painel Administrativo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%B1%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { background: var(--bg); }
+  .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 20px 90px; }
+  .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 12px; }
+  .admin-header h1 { font-size: 1.6rem; }
+  .admin-header .logo { font-size: 1.1rem; }
+  .admin-card { background: var(--bg-alt); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 24px; margin-bottom: 28px; box-shadow: var(--shadow-sm); }
+  .admin-card h2 { font-size: 1.15rem; margin-bottom: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--ink-soft); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+  tr:last-child td { border-bottom: none; }
+  .status-select, .stock-input { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); font-size: .82rem; font-weight: 600; }
+  .stock-input { width: 70px; }
+  .save-btn { background: var(--ink); color: #fff; padding: 6px 14px; border-radius: 6px; font-size: .78rem; font-weight: 700; margin-left: 8px; }
+  .save-btn:hover { background: var(--primary); }
+  .gate { max-width: 380px; margin: 120px auto; text-align: center; background: var(--bg-alt); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 34px; box-shadow: var(--shadow-md); }
+  .gate input { width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); margin: 16px 0; font-size: .95rem; }
+  .gate p { color: var(--ink-soft); font-size: .85rem; }
+  .empty-msg { color: var(--ink-soft); font-size: .9rem; padding: 10px 0; }
+  .items-list { font-size: .78rem; color: var(--ink-soft); }
+  .logout-link { font-size: .82rem; color: var(--danger); font-weight: 700; }
+  .toast-msg { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: .85rem; opacity: 0; transition: opacity .2s; z-index: 50; }
+  .toast-msg.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="gateView" class="gate">
+  <h2>🔒 Painel NovaCell</h2>
+  <p>Digite o token de administrador para acessar pedidos e estoque.</p>
+  <input type="password" id="tokenInput" placeholder="Token de administrador">
+  <button class="btn btn-primary btn-block" id="gateBtn">Entrar</button>
+  <p style="margin-top:14px;">Padrão: <code>novacell-admin</code> (defina <code>ADMIN_TOKEN</code> ao iniciar o servidor para trocar).</p>
+</div>
+
+<div class="admin-wrap" id="adminView" hidden>
+  <div class="admin-header">
+    <a href="index.html" class="logo"><span class="logo-mark">📱</span><span class="logo-text">Nova<strong>Cell</strong></span> · Admin</a>
+    <a href="#" class="logout-link" id="logoutBtn">Sair</a>
+  </div>
+
+  <div class="admin-card">
+    <h2>📦 Pedidos</h2>
+    <div id="ordersTableWrap"><p class="empty-msg">Carregando pedidos...</p></div>
+  </div>
+
+  <div class="admin-card">
+    <h2>📱 Estoque</h2>
+    <div id="stockTableWrap"><p class="empty-msg">Carregando estoque...</p></div>
+  </div>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<script>
+function formatBRL(v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+function formatDate(iso) { return new Date(iso).toLocaleString('pt-BR'); }
+
+function showMsg(text) {
+  const el = document.getElementById('toastMsg');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+const gateView = document.getElementById('gateView');
+const adminView = document.getElementById('adminView');
+let ADMIN_TOKEN = sessionStorage.getItem('novacell_admin_token') || '';
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN };
+}
+
+async function tryEnter(token) {
+  const resp = await fetch('/api/admin/orders', { headers: { 'x-admin-token': token } });
+  if (resp.ok) {
+    ADMIN_TOKEN = token;
+    sessionStorage.setItem('novacell_admin_token', token);
+    gateView.hidden = true;
+    adminView.hidden = false;
+    loadOrders();
+    loadStock();
+    return true;
+  }
+  return false;
+}
+
+document.getElementById('gateBtn').addEventListener('click', async () => {
+  const token = document.getElementById('tokenInput').value.trim();
+  const ok = await tryEnter(token);
+  if (!ok) showMsg('Token inválido.');
+});
+document.getElementById('tokenInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('gateBtn').click();
+});
+document.getElementById('logoutBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  sessionStorage.removeItem('novacell_admin_token');
+  location.reload();
+});
+
+const STATUS_OPTIONS = ['aguardando pagamento', 'recebido', 'pago', 'confirmado', 'em separação', 'enviado', 'entregue', 'pagamento recusado', 'cancelado'];
+const PAYMENT_STATUS_LABELS = {
+  manual: '💬 Manual (WhatsApp)',
+  pendente: '⏳ Pendente',
+  approved: '✅ Aprovado',
+  pending: '⏳ Pendente',
+  in_process: '⏳ Em análise',
+  rejected: '❌ Recusado',
+  cancelled: '✖ Cancelado',
+  refunded: '↩️ Estornado',
+  charged_back: '↩️ Chargeback'
+};
+
+async function loadOrders() {
+  const resp = await fetch('/api/admin/orders', { headers: authHeaders() });
+  const orders = await resp.json();
+  const wrap = document.getElementById('ordersTableWrap');
+
+  if (!orders.length) {
+    wrap.innerHTML = '<p class="empty-msg">Nenhum pedido recebido ainda.</p>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Forma</th><th>Pagamento</th><th>Status</th><th>Recebido em</th></tr></thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td><strong>#${o.orderNumber}</strong></td>
+            <td>${o.customerName}<br><span class="items-list">${o.whatsapp}</span></td>
+            <td class="items-list">${o.items.map(i => `${i.qty}x ${i.name} (${i.variant})`).join('<br>')}</td>
+            <td><strong>${formatBRL(o.total)}</strong></td>
+            <td>${o.paymentMethod}</td>
+            <td class="items-list">${PAYMENT_STATUS_LABELS[o.paymentStatus] || o.paymentStatus || '—'}${o.paymentId ? `<br><span title="ID do pagamento no Mercado Pago">#${o.paymentId}</span>` : ''}</td>
+            <td>
+              <select class="status-select" data-order="${o.orderNumber}">
+                ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td class="items-list">${formatDate(o.createdAt)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  wrap.querySelectorAll('.status-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const resp = await fetch(`/api/admin/orders/${sel.dataset.order}/status`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ status: sel.value })
+      });
+      if (resp.ok) showMsg(`Pedido #${sel.dataset.order} atualizado.`);
+    });
+  });
+}
+
+async function loadStock() {
+  const resp = await fetch('/api/products');
+  const products = await resp.json();
+  const wrap = document.getElementById('stockTableWrap');
+
+  const rows = products.filter(p => !p.presale).map(p => `
+    <tr>
+      <td><strong>${p.name}</strong></td>
+      <td>Novo<br>
+        <input type="number" min="0" class="stock-input" value="${p.novo.stock}" data-id="${p.id}" data-cond="novo">
+        <button class="save-btn" data-id="${p.id}" data-cond="novo">Salvar</button>
+      </td>
+      <td>${p.recon.available ? `Recondicionado<br>
+        <input type="number" min="0" class="stock-input" value="${p.recon.stock}" data-id="${p.id}" data-cond="recon">
+        <button class="save-btn" data-id="${p.id}" data-cond="recon">Salvar</button>` : '<span class="items-list">Não disponível</span>'}
+      </td>
+    </tr>
+  `).join('');
+
+  const presale = products.find(p => p.presale);
+  const presaleRow = presale ? `
+    <p class="items-list" style="margin-top:14px;">⚡ <strong>${presale.name} (pré-venda):</strong> ${presale.reservationsCount || 0} de ${presale.reservationLimit} reservas realizadas.</p>
+  ` : '';
+
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Modelo</th><th>Estoque Novo</th><th>Estoque Recondicionado</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${presaleRow}
+  `;
+
+  wrap.querySelectorAll('.save-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const input = wrap.querySelector(`.stock-input[data-id="${btn.dataset.id}"][data-cond="${btn.dataset.cond}"]`);
+      const resp = await fetch(`/api/admin/products/${btn.dataset.id}/stock`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ condition: btn.dataset.cond, stock: input.value })
+      });
+      if (resp.ok) showMsg('Estoque atualizado.');
+    });
+  });
+}
+
+if (ADMIN_TOKEN) {
+  tryEnter(ADMIN_TOKEN);
+}
+</script>
+</body>
+</html>
