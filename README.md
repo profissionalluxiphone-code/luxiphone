@@ -55,6 +55,25 @@ Desde que essa funcionalidade foi adicionada, o cliente precisa entrar com a con
 
 Sem o `GOOGLE_CLIENT_ID` configurado, o botão de login não aparece e ninguém consegue finalizar pedidos — então essa variável é obrigatória em produção.
 
+## E-mail de confirmação do pedido
+
+Assim que o pedido é criado, o cliente recebe um e-mail personalizado (número do pedido, itens e total) no endereço que ele preencheu no checkout. Usa o Gmail via Nodemailer — sem custo, sem serviço externo.
+
+### Como ativar
+
+1. Ative a **verificação em duas etapas** na conta Gmail que vai enviar os e-mails (ex.: `profissionalluxiphone@gmail.com`), em [myaccount.google.com/security](https://myaccount.google.com/security).
+2. Gere uma **senha de app** em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) (escolha "Mail" como aplicativo). O Google gera uma senha de 16 letras — **não é a senha normal da conta**.
+3. Configure:
+   - `EMAIL_USER` → o e-mail do Gmail (ex.: `profissionalluxiphone@gmail.com`).
+   - `EMAIL_APP_PASSWORD` → a senha de 16 letras gerada no passo 2.
+   - Local: no `.env`. Render: aba **Environment** do serviço `lux-iphones-store`.
+
+Sem essas variáveis, o pedido continua funcionando normalmente — só não envia e-mail.
+
+### WhatsApp
+
+O número de WhatsApp do cliente já é coletado no checkout e aparece no painel `/admin.html`, com um botão **📲 WhatsApp** que abre uma conversa já com uma mensagem pronta sobre o pedido — você só confere e manda. Envio 100% automático de WhatsApp (sem precisar clicar) exigiria a API oficial do WhatsApp Business (Meta), que pede verificação da empresa e tem um processo de aprovação mais longo; se quiser seguir esse caminho no futuro, é um projeto separado.
+
 ## Gateway de pagamento (Mercado Pago)
 
 O checkout tem três formas de operar, dependendo do que estiver configurado:

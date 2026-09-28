@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const db = require('./database');
 const mercadopago = require('./payments/mercadopago');
 const auth = require('./auth');
+const mailer = require('./email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -144,7 +145,7 @@ app.get('/api/me/orders', requireUser, asyncHandler(async (req, res) => {
 
 // ---------- PUBLIC: CREATE ORDER (exige login com Google) ----------
 app.post('/api/orders', requireUser, asyncHandler(async (req, res) => {
-  const { customerName, whatsapp, paymentMethod, items } = req.body || {};
+  const { customerName, whatsapp, email: customerEmail, paymentMethod, items } = req.body || {};
 
   if (!customerName || !whatsapp || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Preencha nome, WhatsApp e adicione ao menos um item.' });
@@ -213,6 +214,7 @@ app.post('/api/orders', requireUser, asyncHandler(async (req, res) => {
     orderNumber: await db.nextOrderNumber(),
     customerName,
     whatsapp,
+    email: customerEmail || req.user.email,
     paymentMethod: paymentMethod || 'pix',
     items: resolvedItems,
     total,
@@ -223,6 +225,7 @@ app.post('/api/orders', requireUser, asyncHandler(async (req, res) => {
   };
 
   const saved = await db.createOrder(order);
+  mailer.sendOrderConfirmationEmail(saved).catch(() => {});
 
   if (!usePaymentGateway) {
     return res.status(201).json(saved);

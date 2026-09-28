@@ -38,6 +38,7 @@ function mapOrderRow(row) {
     orderNumber: row.order_number,
     customerName: row.customer_name,
     whatsapp: row.whatsapp,
+    email: row.email ?? undefined,
     paymentMethod: row.payment_method,
     items: row.items,
     total: Number(row.total),
@@ -106,12 +107,14 @@ async function init(seedData) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       payment_id TEXT,
       payment_status TEXT NOT NULL DEFAULT 'manual',
-      user_id TEXT
+      user_id TEXT,
+      email TEXT
     );
   `);
   await p.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_id TEXT');
   await p.query("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'manual'");
   await p.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_id TEXT');
+  await p.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS email TEXT');
   await p.query(`
     CREATE TABLE IF NOT EXISTS counters (
       name TEXT PRIMARY KEY,
@@ -186,12 +189,12 @@ async function getOrderByNumber(orderNumber) {
 
 async function createOrder(order) {
   await getPool().query(
-    `INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    `INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id, email)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       order.orderNumber, order.customerName, order.whatsapp, order.paymentMethod,
       JSON.stringify(order.items), order.total, order.status, order.createdAt,
-      order.paymentStatus || 'manual', order.userId || null
+      order.paymentStatus || 'manual', order.userId || null, order.email || null
     ]
   );
   return getOrderByNumber(order.orderNumber);

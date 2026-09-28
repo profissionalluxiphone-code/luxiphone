@@ -131,6 +131,15 @@ const PAYMENT_STATUS_LABELS = {
   charged_back: '↩️ Chargeback'
 };
 
+function whatsAppLink(order) {
+  let digits = (order.whatsapp || '').replace(/\D/g, '');
+  if (digits.length <= 11) digits = `55${digits}`; // adiciona DDI Brasil se não tiver
+  const firstName = (order.customerName || '').trim().split(' ')[0];
+  const itemsText = order.items.map((i) => `${i.qty}x ${i.name} (${i.variant})`).join(', ');
+  const message = `Oi, ${firstName}! Aqui é da Lux iPhones 💜 Recebemos seu pedido #${order.orderNumber} (${itemsText}, total ${formatBRL(order.total)}). Vamos confirmar o pagamento e o envio por aqui mesmo!`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
 async function loadOrders() {
   const resp = await fetch('/api/admin/orders', { headers: authHeaders() });
   const orders = await resp.json();
@@ -143,12 +152,12 @@ async function loadOrders() {
 
   wrap.innerHTML = `
     <table>
-      <thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Forma</th><th>Pagamento</th><th>Status</th><th>Recebido em</th></tr></thead>
+      <thead><tr><th>Pedido</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Forma</th><th>Pagamento</th><th>Status</th><th>Recebido em</th><th></th></tr></thead>
       <tbody>
         ${orders.map(o => `
           <tr>
             <td><strong>#${o.orderNumber}</strong></td>
-            <td>${o.customerName}<br><span class="items-list">${o.whatsapp}</span></td>
+            <td>${o.customerName}<br><span class="items-list">${o.whatsapp}${o.email ? `<br>${o.email}` : ''}</span></td>
             <td class="items-list">${o.items.map(i => `${i.qty}x ${i.name} (${i.variant})`).join('<br>')}</td>
             <td><strong>${formatBRL(o.total)}</strong></td>
             <td>${o.paymentMethod}</td>
@@ -159,6 +168,7 @@ async function loadOrders() {
               </select>
             </td>
             <td class="items-list">${formatDate(o.createdAt)}</td>
+            <td><a class="save-btn" style="text-decoration:none;display:inline-block;" href="${whatsAppLink(o)}" target="_blank" rel="noopener">📲 WhatsApp</a></td>
           </tr>
         `).join('')}
       </tbody>

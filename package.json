@@ -15,6 +15,7 @@
     "express": "^4.19.2",
     "google-auth-library": "^9.15.0",
     "mercadopago": "^3.6.1",
+    "nodemailer": "^10.0.12",
     "pg": "^8.13.1"
   }
 }

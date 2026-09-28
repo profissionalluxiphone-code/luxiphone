@@ -31,6 +31,7 @@ function mapOrderRow(row) {
     orderNumber: row.order_number,
     customerName: row.customer_name,
     whatsapp: row.whatsapp,
+    email: row.email ?? undefined,
     paymentMethod: row.payment_method,
     items: JSON.parse(row.items),
     total: row.total,
@@ -99,7 +100,8 @@ async function init(seedData) {
       created_at TEXT NOT NULL,
       payment_id TEXT,
       payment_status TEXT NOT NULL DEFAULT 'manual',
-      user_id TEXT
+      user_id TEXT,
+      email TEXT
     );
   `);
   db.exec(`
@@ -118,6 +120,9 @@ async function init(seedData) {
   }
   if (!orderCols.includes('user_id')) {
     db.exec('ALTER TABLE orders ADD COLUMN user_id TEXT');
+  }
+  if (!orderCols.includes('email')) {
+    db.exec('ALTER TABLE orders ADD COLUMN email TEXT');
   }
 
   const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
@@ -188,12 +193,12 @@ async function getOrderByNumber(orderNumber) {
 
 async function createOrder(order) {
   db.prepare(`
-    INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (order_number, customer_name, whatsapp, payment_method, items, total, status, created_at, payment_status, user_id, email)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     order.orderNumber, order.customerName, order.whatsapp, order.paymentMethod,
     JSON.stringify(order.items), order.total, order.status, order.createdAt,
-    order.paymentStatus || 'manual', order.userId || null
+    order.paymentStatus || 'manual', order.userId || null, order.email || null
   );
   return getOrderByNumber(order.orderNumber);
 }
