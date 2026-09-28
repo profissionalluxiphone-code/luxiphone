@@ -11,7 +11,9 @@ const PRODUCT_IMAGES = {
   'iphone-14': 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-iPhone-14-Plus-2up-midnight-220907_inline.jpg.large.jpg',
   'iphone-15': 'https://www.apple.com/newsroom/images/2023/09/apple-debuts-iphone-15-and-iphone-15-plus/article/Apple-iPhone-15-lineup-design-230912_big.jpg.large.jpg',
   'iphone-16': 'https://www.apple.com/newsroom/images/2024/09/apple-introduces-iphone-16-and-iphone-16-plus/article/Apple-iPhone-16-finish-lineup-240909_big.jpg.large.jpg',
-  'iphone-17': 'https://www.apple.com/newsroom/images/2025/09/apple-debuts-iphone-17/article/Apple-iPhone-17-hero-250909_inline.jpg.large.jpg'
+  'iphone-17': 'https://www.apple.com/newsroom/images/2025/09/apple-debuts-iphone-17/article/Apple-iPhone-17-hero-250909_inline.jpg.large.jpg',
+  // iPhone 18 ainda não foi lançado pela Apple — render conceitual (Dimensiva), não é foto oficial.
+  'iphone-18': 'https://dimensiva.com/wp-content/uploads/edd/2026/09/iphone-18-pro-2026-by-apple-1024x1024.jpg'
 };
 
 // ================= HEADER: scroll shadow + mobile menu =================
@@ -234,7 +236,7 @@ if (sortSelectEl) {
   });
 }
 
-// ================= BLACK FRIDAY: countdown =================
+// ================= ESQUENTA BLACK: countdown =================
 const bfEndDate = new Date('2026-12-01T23:59:59').getTime();
 function updateBFCountdown() {
   const daysEl = document.getElementById('bfDays');
@@ -277,7 +279,7 @@ updateCountdown();
 setInterval(updateCountdown, 1000);
 
 // ================= PRESALE: price + actions =================
-let PRESALE_BASE = 7499;
+let PRESALE_BASE = 4990;
 let PRESALE_DEPOSIT = 299;
 const presaleStorageSelect = document.getElementById('presaleStorage');
 function updatePresalePrice() {
@@ -775,15 +777,6 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 
 revealTargets.forEach(el => observer.observe(el));
-
-// ================= WHATSAPP FLOAT =================
-const whatsappFloatBtn = document.getElementById('whatsappFloat');
-if (whatsappFloatBtn) {
-  whatsappFloatBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    showToast('💬', 'Atendimento Lux iPhones', 'Em um site real, este botão abriria o WhatsApp da loja.');
-  });
-}
 
 // ================= PAYMENT RETURN: coming back from Mercado Pago checkout =================
 async function handlePaymentReturn() {

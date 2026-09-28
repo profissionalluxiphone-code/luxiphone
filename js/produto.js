@@ -200,19 +200,18 @@ async function initProductPage() {
     reviewsBlock.hidden = true;
   }
 
+  document.getElementById('pdpImage').src = PRODUCT_IMAGES[id] || '';
+  document.getElementById('pdpImage').alt = product.name;
+  // O iPhone 18 ainda não foi lançado pela Apple: a imagem é um render conceitual,
+  // não uma foto oficial — deixamos isso explícito para não induzir ninguém a erro.
+  document.getElementById('pdpConceptTag').hidden = !product.presale;
+
   if (product.presale) {
-    // O modelo ainda não foi lançado: sem foto real, mostra o mockup em CSS
-    // (o mesmo usado na seção de pré-venda da home) em vez de uma imagem que não é ele de verdade.
-    document.getElementById('pdpImage').hidden = true;
-    document.getElementById('pdpPresaleVisual').hidden = false;
     document.getElementById('pdpBuyBox').hidden = true;
     document.getElementById('pdpPresaleBox').hidden = false;
     document.getElementById('pdpPresalePrice').textContent = formatBRL(product.basePrice);
     return;
   }
-
-  document.getElementById('pdpImage').src = PRODUCT_IMAGES[id] || '';
-  document.getElementById('pdpImage').alt = product.name;
 
   document.getElementById('pdpBuyBox').hidden = false;
   document.getElementById('pdpPresaleBox').hidden = true;

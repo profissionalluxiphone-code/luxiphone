@@ -46,8 +46,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 2499, de: 4399, stock: 16, available: true },
-    recon: { price: 1999, de: 3499, stock: 20, available: true }
+    novo: { price: 1999, de: 4399, stock: 16, available: true },
+    recon: { price: 1599, de: 3499, stock: 20, available: true }
   },
   {
     id: 'iphone-15',
@@ -58,8 +58,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 2999, de: 5299, stock: 14, available: true },
-    recon: { price: 2399, de: 4299, stock: 16, available: true }
+    novo: { price: 2300, de: 5299, stock: 14, available: true },
+    recon: { price: 1799, de: 4299, stock: 16, available: true }
   },
   {
     id: 'iphone-16',
@@ -70,8 +70,8 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 3599, de: 6199, stock: 12, available: true },
-    recon: { price: 2999, de: 5199, stock: 10, available: true }
+    novo: { price: 2990, de: 6199, stock: 12, available: true },
+    recon: { price: 2499, de: 5199, stock: 10, available: true }
   },
   {
     id: 'iphone-17',
@@ -82,7 +82,7 @@ module.exports = [
       { label: '256GB', delta: 400 },
       { label: '512GB', delta: 800 }
     ],
-    novo: { price: 4399, de: 6999, stock: 9, available: true },
+    novo: { price: 3490, de: 6999, stock: 9, available: true },
     recon: { price: 0, de: 0, stock: 0, available: false }
   },
   {
@@ -90,7 +90,7 @@ module.exports = [
     name: 'iPhone 18',
     sortOrder: 8,
     presale: true,
-    basePrice: 7499,
+    basePrice: 4990,
     depositPrice: 299,
     storageOptions: [
       { label: '256GB', delta: 0 },
@@ -98,6 +98,6 @@ module.exports = [
       { label: '1TB', delta: 1200 }
     ],
     reservationLimit: 500,
-    reservationsCount: 0
+    reservationsCount: 400
   }
 ];
